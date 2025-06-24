@@ -55,7 +55,7 @@ const Users = () => {
   ];
 
   const roles = ['admin', 'manager', 'user', 'hr'];
-  const baseURL = 'https://pel-gel-backend.onrender.com/v1/api';
+  const baseURL = 'http://localhost:5000/v1/api';
 
   const fetchUsers = async () => {
     setIsLoading(true);
