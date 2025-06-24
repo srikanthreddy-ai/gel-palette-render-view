@@ -31,27 +31,8 @@ const Users = () => {
     hr: ['dashboard', 'staff', 'master_data']
   });
 
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: '1',
-      username: 'admin',
-      email: 'admin@company.com',
-      role: 'admin',
-      permissions: ['dashboard', 'incentives', 'staff', 'reports', 'master_data', 'settings'],
-      createdAt: '2024-01-01',
-      status: 'active'
-    },
-    {
-      id: '2',
-      username: 'manager1',
-      email: 'manager@company.com',
-      role: 'manager',
-      permissions: ['dashboard', 'incentives', 'staff', 'reports'],
-      createdAt: '2024-01-15',
-      status: 'active'
-    }
-  ]);
-
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
@@ -76,16 +57,57 @@ const Users = () => {
 
   const roles = ['admin', 'manager', 'user', 'hr'];
 
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    console.log('Fetching users from API...');
+    
+    try {
+      const authToken = sessionStorage.getItem('authToken');
+      console.log('Auth token:', authToken ? 'Present' : 'Missing');
+      
+      const url = 'https://pel-gel-backend.onrender.com/v1/api/usersList';
+      console.log('API URL:', url);
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Response data:', data);
+        setUsers(data.data || []);
+      } else {
+        console.error('API Error:', response.status, response.statusText);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch users",
+        });
+      }
+    } catch (error) {
+      console.error('Fetch users error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Unable to connect to the server",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const storedPermissions = localStorage.getItem('rolePermissions');
     if (storedPermissions) {
       setRolePermissions(JSON.parse(storedPermissions));
     }
 
-    const storedUsers = localStorage.getItem('users');
-    if (storedUsers) {
-      setUsers(JSON.parse(storedUsers));
-    }
+    fetchUsers();
   }, []);
 
   const handleRoleChange = (role: string) => {
@@ -126,7 +148,6 @@ const Users = () => {
       });
     }
     
-    localStorage.setItem('users', JSON.stringify(users));
     setIsUserDialogOpen(false);
     setEditingUser(null);
     form.reset();
@@ -297,32 +318,46 @@ const Users = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.username}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell className="capitalize">{user.role}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      user.status === 'active' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {user.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditUser(user)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    Loading users...
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : users.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    No users found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{user.username}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell className="capitalize">{user.role}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        user.status === 'active' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {user.status}
+                      </span>
+                    </TableCell>
+                    <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditUser(user)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
