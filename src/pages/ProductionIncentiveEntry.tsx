@@ -99,10 +99,36 @@ const ProductionIncentiveEntry = () => {
         const data = await response.json();
         console.log('Nature and Buildings data:', data);
         
-        // Assuming the API returns data with category field to distinguish buildings and natures
         const allData = data.data || [];
-        setBuildings(allData.filter((item: NatureCategory) => item.category === 'building' && !item.isDeleted));
-        setNatures(allData.filter((item: NatureCategory) => item.category === 'nature' && !item.isDeleted));
+        
+        // Buildings are the top-level items
+        const buildingsData = allData.map((building: any) => ({
+          _id: building.id,
+          name: building.name,
+          category: 'building',
+          isDeleted: false
+        }));
+        
+        // Natures are within productionNatures array of each building
+        const naturesData: any[] = [];
+        allData.forEach((building: any) => {
+          if (building.productionNatures) {
+            building.productionNatures.forEach((nature: any) => {
+              naturesData.push({
+                _id: nature.id,
+                name: nature.name,
+                category: 'nature',
+                isDeleted: false
+              });
+            });
+          }
+        });
+        
+        console.log('Processed buildings:', buildingsData);
+        console.log('Processed natures:', naturesData);
+        
+        setBuildings(buildingsData);
+        setNatures(naturesData);
       } else {
         console.error('Failed to fetch nature/buildings:', response.status);
         toast({
