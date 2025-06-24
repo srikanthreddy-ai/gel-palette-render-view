@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,6 +10,11 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { API_ENDPOINTS } from '@/config/api';
 
+interface BuildingOption {
+  id: string;
+  name: string;
+}
+
 const Reports = () => {
   const [selectedReport, setSelectedReport] = useState('');
   const [reportType, setReportType] = useState('');
@@ -19,6 +23,8 @@ const Reports = () => {
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [buildingOptions, setBuildingOptions] = useState<BuildingOption[]>([]);
+  const [isLoadingBuildings, setIsLoadingBuildings] = useState(false);
   const { toast } = useToast();
 
   const reportOptions = [
@@ -40,15 +46,64 @@ const Reports = () => {
     { value: 'custom', label: 'Custom Date Range' }
   ];
 
-  const buildingOptions = [
-    { value: 'all', label: 'All Buildings' },
-    { value: 'building_a', label: 'Building A' },
-    { value: 'building_b', label: 'Building B' },
-    { value: 'building_c', label: 'Building C' },
-    { value: 'warehouse', label: 'Warehouse' }
-  ];
-
   const isAllowanceOrIncentive = selectedReport === 'allowance' || selectedReport === 'incentive';
+
+  // Fetch buildings when component mounts or when allowance/incentive is selected
+  useEffect(() => {
+    if (isAllowanceOrIncentive) {
+      fetchBuildings();
+    }
+  }, [isAllowanceOrIncentive]);
+
+  const fetchBuildings = async () => {
+    setIsLoadingBuildings(true);
+    try {
+      const authToken = sessionStorage.getItem('authToken');
+      
+      if (!authToken) {
+        toast({
+          title: "Authentication Error",
+          description: "Please login again",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const response = await fetch(API_ENDPOINTS.PRODUCTION_DEPT, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch buildings');
+      }
+
+      const data = await response.json();
+      console.log('Buildings data:', data);
+      
+      // Add "All Buildings" option at the beginning
+      const buildingsWithAll = [
+        { id: 'all', name: 'All Buildings' },
+        ...(Array.isArray(data) ? data : [])
+      ];
+      
+      setBuildingOptions(buildingsWithAll);
+    } catch (error) {
+      console.error('Error fetching buildings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load buildings",
+        variant: "destructive"
+      });
+      // Fallback to default options
+      setBuildingOptions([{ id: 'all', name: 'All Buildings' }]);
+    } finally {
+      setIsLoadingBuildings(false);
+    }
+  };
 
   const handleDownload = async () => {
     if (!selectedReport || !reportType || !startDate || !endDate) {
@@ -194,13 +249,13 @@ const Reports = () => {
               <label className="text-sm font-medium">Building</label>
               <Select value={selectedBuilding} onValueChange={setSelectedBuilding}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose building" />
+                  <SelectValue placeholder={isLoadingBuildings ? "Loading buildings..." : "Choose building"} />
                 </SelectTrigger>
                 <SelectContent>
                   {buildingOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
+                    <SelectItem key={option.id} value={option.id}>
                       <Building className="mr-2 h-4 w-4 inline" />
-                      {option.label}
+                      {option.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
