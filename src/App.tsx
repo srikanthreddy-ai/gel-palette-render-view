@@ -16,6 +16,7 @@ import BulkUpload from '@/pages/BulkUpload';
 import NormsManagement from '@/pages/NormsManagement';
 import ShiftManagement from '@/pages/ShiftManagement';
 import ProductionIncentiveEntry from '@/pages/ProductionIncentiveEntry';
+import AddNewAllowance from '@/pages/AddNewAllowance';
 import Index from '@/pages/Index';
 import NotFound from '@/pages/NotFound';
 import './App.css';
@@ -36,7 +37,7 @@ function App() {
             <Route path="/reports" element={<DashboardLayout><Reports /></DashboardLayout>} />
             <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
             <Route path="/incentives/add" element={<DashboardLayout><ProductionIncentiveEntry /></DashboardLayout>} />
-            <Route path="/incentives/add-allowance" element={<DashboardLayout><AllowanceManagement /></DashboardLayout>} />
+            <Route path="/incentives/add-allowance" element={<DashboardLayout><AddNewAllowance /></DashboardLayout>} />
             <Route path="/incentives/add-general" element={<DashboardLayout><ProductionCategoryManagement /></DashboardLayout>} />
             <Route path="/incentives/view-allowance" element={<DashboardLayout><AllowanceManagement /></DashboardLayout>} />
             <Route path="/master/building" element={<DashboardLayout><ProductionCategoryManagement /></DashboardLayout>} />
