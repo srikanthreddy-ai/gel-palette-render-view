@@ -11,6 +11,7 @@ const BulkUpload = () => {
   const { toast } = useToast();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [masterType, setMasterType] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   const masterTypes = [
     { value: 'building', label: 'Building Master' },
@@ -27,7 +28,7 @@ const BulkUpload = () => {
     }
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!selectedFile || !masterType) {
       toast({
         title: "Error",
@@ -37,21 +38,88 @@ const BulkUpload = () => {
       return;
     }
 
-    // Mock upload process
-    toast({
-      title: "Upload started",
-      description: `Uploading ${selectedFile.name} for ${masterType} master...`
-    });
+    setIsUploading(true);
+    console.log('Starting upload process for:', masterType, selectedFile.name);
 
-    // Simulate upload progress
-    setTimeout(() => {
+    try {
+      const authToken = sessionStorage.getItem('authToken');
+      
+      if (!authToken) {
+        toast({
+          title: "Error",
+          description: "Authentication token not found. Please log in again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // For employee master, use the specific API endpoint
+      if (masterType === 'employee') {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        console.log('Making POST request to employee upload API');
+
+        const response = await fetch('https://pel-gel-backend.onrender.com/v1/api/employeeUpload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+          },
+          body: formData,
+        });
+
+        console.log('Response status:', response.status);
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Upload response:', result);
+          
+          toast({
+            title: "Upload completed",
+            description: `Successfully uploaded ${selectedFile.name} for Employee Master.`
+          });
+          
+          setSelectedFile(null);
+          setMasterType('');
+        } else {
+          const errorData = await response.text();
+          console.error('Upload error:', response.status, errorData);
+          
+          toast({
+            title: "Upload failed",
+            description: "Failed to upload employee data. Please check the file format and try again.",
+            variant: "destructive"
+          });
+        }
+      } else {
+        // For other master types, show a placeholder message
+        toast({
+          title: "Upload started",
+          description: `Uploading ${selectedFile.name} for ${masterType} master...`
+        });
+
+        // Simulate upload for other master types (to be implemented later)
+        setTimeout(() => {
+          toast({
+            title: "Upload completed",
+            description: `Successfully uploaded ${selectedFile.name} to ${masterType} master.`
+          });
+          setSelectedFile(null);
+          setMasterType('');
+          setIsUploading(false);
+        }, 2000);
+        return;
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
       toast({
-        title: "Upload completed",
-        description: `Successfully uploaded ${selectedFile.name} to ${masterType} master.`
+        title: "Upload failed",
+        description: "Unable to connect to the server. Please try again later.",
+        variant: "destructive"
       });
-      setSelectedFile(null);
-      setMasterType('');
-    }, 2000);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const downloadTemplate = (type: string) => {
@@ -94,6 +162,7 @@ const BulkUpload = () => {
                 accept=".xlsx,.xls,.csv"
                 onChange={handleFileSelect}
                 className="cursor-pointer"
+                disabled={isUploading}
               />
               {selectedFile && (
                 <p className="text-sm text-gray-600 mt-1">
@@ -105,10 +174,10 @@ const BulkUpload = () => {
             <Button 
               onClick={handleUpload}
               className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={!selectedFile || !masterType}
+              disabled={!selectedFile || !masterType || isUploading}
             >
               <Upload className="mr-2 h-4 w-4" />
-              Upload File
+              {isUploading ? 'Uploading...' : 'Upload File'}
             </Button>
           </CardContent>
         </Card>
@@ -127,6 +196,7 @@ const BulkUpload = () => {
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() => downloadTemplate(type.label)}
+                disabled={isUploading}
               >
                 Download {type.label} Template
               </Button>
@@ -146,6 +216,7 @@ const BulkUpload = () => {
             <li>Please use the provided templates to ensure data compatibility</li>
             <li>Duplicate entries will be skipped during upload</li>
             <li>Invalid data rows will be reported after upload completion</li>
+            <li>Employee Master uploads use the dedicated employeeUpload API</li>
           </ul>
         </CardContent>
       </Card>
