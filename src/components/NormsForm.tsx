@@ -63,12 +63,16 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
   const [isBuildingsLoading, setIsBuildingsLoading] = useState(false);
   const { toast } = useToast();
 
+  // Fetch buildings first
   useEffect(() => {
     fetchBuildings();
   }, []);
 
+  // Set form data after buildings are loaded
   useEffect(() => {
     console.log('Norm prop changed:', norm);
+    console.log('Buildings available:', buildings.length);
+    
     if (norm) {
       // Format incentives for editing
       const formattedIncentives = norm.incentives && norm.incentives.length > 0 
@@ -108,7 +112,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         incentives: [{ min: "", max: "", each: "", amount: "" }],
       });
     }
-  }, [norm]);
+  }, [norm, buildings]); // Add buildings as dependency
 
   const fetchBuildings = async () => {
     setIsBuildingsLoading(true);
