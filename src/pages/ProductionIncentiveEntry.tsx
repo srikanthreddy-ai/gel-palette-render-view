@@ -328,6 +328,17 @@ const ProductionIncentiveEntry = () => {
       return;
     }
 
+    // Check if selected customers count matches manpower
+    const manpowerLimit = parseInt(manpower) || 0;
+    if (selectedCustomers.length !== manpowerLimit) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: `Number of selected customers (${selectedCustomers.length}) must match the manpower requirement (${manpowerLimit})`,
+      });
+      return;
+    }
+
     setIsLoading(true);
     
     try {
