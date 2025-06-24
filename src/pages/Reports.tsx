@@ -9,6 +9,7 @@ import { CalendarIcon, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { API_ENDPOINTS } from '@/config/api';
 
 const Reports = () => {
   const [selectedReport, setSelectedReport] = useState('');
@@ -44,11 +45,28 @@ const Reports = () => {
     setIsDownloading(true);
     
     try {
-      // This would be replaced with your actual API endpoint
-      const response = await fetch(`/api/downloadReport?report=${selectedReport}&type=${reportType}&startDate=${format(startDate, 'yyyy-MM-dd')}&endDate=${format(endDate, 'yyyy-MM-dd')}`, {
+      const authToken = sessionStorage.getItem('authToken');
+      
+      if (!authToken) {
+        toast({
+          title: "Authentication Error",
+          description: "Please login again",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const params = new URLSearchParams({
+        report: selectedReport,
+        type: reportType,
+        startDate: format(startDate, 'yyyy-MM-dd'),
+        endDate: format(endDate, 'yyyy-MM-dd')
+      });
+
+      const response = await fetch(`${API_ENDPOINTS.DOWNLOAD_REPORT}?${params.toString()}`, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
         },
       });
 
