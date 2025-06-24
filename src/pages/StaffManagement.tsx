@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Search, Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import AddEditEmployeeForm from '@/components/AddEditEmployeeForm';
 
 interface Employee {
   _id: string;
@@ -63,12 +64,11 @@ const StaffManagement = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Response data:', data);
-        // Fix: API returns data in 'data' field, not 'employees'
         setEmployees(data.data || []);
       } else {
         console.error('API Error:', response.status, response.statusText);
         toast({
-          variant: "destructive",
+          variant: "destructive", 
           title: "Error",
           description: "Failed to fetch employees",
         });
@@ -107,6 +107,11 @@ const StaffManagement = () => {
     setIsDialogOpen(false);
     setEditingEmployee(null);
     fetchEmployees();
+  };
+
+  const handleCancel = () => {
+    setIsDialogOpen(false);
+    setEditingEmployee(null);
   };
 
   return (
@@ -188,25 +193,17 @@ const StaffManagement = () => {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingEmployee ? 'Edit Employee' : 'New Employee'}
             </DialogTitle>
           </DialogHeader>
-          <div className="p-4">
-            <p className="text-center text-gray-500">
-              Employee form will be implemented here
-            </p>
-            <div className="flex justify-end space-x-2 mt-4">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleEmployeeSaved}>
-                Save
-              </Button>
-            </div>
-          </div>
+          <AddEditEmployeeForm
+            employee={editingEmployee}
+            onSave={handleEmployeeSaved}
+            onCancel={handleCancel}
+          />
         </DialogContent>
       </Dialog>
     </div>

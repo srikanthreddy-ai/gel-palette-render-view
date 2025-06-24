@@ -22,9 +22,9 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 
 interface Employee {
-  id?: string;
-  employeeCode?: string;
-  name?: string;
+  _id?: string;
+  empCode?: string;
+  fullName?: string;
   designation?: string;
   department?: string;
   email?: string;
@@ -49,22 +49,24 @@ const AddEditEmployeeForm: React.FC<AddEditEmployeeFormProps> = ({
     email: '',
     department: '',
     cader: '',
-    employeeCode: '',
+    empCode: '',
     designation: '',
     pfNumber: '',
     uanNumber: '',
-    sonDaughterOf: '',
+    sonOf: '',
     dateOfBirth: null as Date | null,
     dateOfJoining: null as Date | null,
     dateOfProbation: null as Date | null,
-    basicSalary: '',
+    basic: '',
     hra: '',
     ca: '',
     sa: '',
-    bankName: '',
-    accountNumber: '',
-    accountHolderName: '',
-    ifscCode: '',
+    bankDetails: {
+      bankName: '',
+      accountNumber: '',
+      accountHolderName: '',
+      ifscCode: '',
+    },
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -72,11 +74,20 @@ const AddEditEmployeeForm: React.FC<AddEditEmployeeFormProps> = ({
 
   React.useEffect(() => {
     if (employee) {
-      // Populate form with existing employee data
+      // Parse the fullName to extract individual name parts
+      const nameParts = employee.fullName?.split(' ') || [];
+      const title = nameParts[0] || '';
+      const firstName = nameParts[1] || '';
+      const middleName = nameParts.length > 3 ? nameParts[2] : '';
+      const lastName = nameParts[nameParts.length - 1] || '';
+
       setFormData(prev => ({
         ...prev,
-        employeeCode: employee.employeeCode || '',
-        firstName: employee.name || '',
+        title,
+        firstName,
+        middleName,
+        lastName,
+        empCode: employee.empCode || '',
         email: employee.email || '',
         designation: employee.designation || '',
         department: employee.department || '',
@@ -85,7 +96,18 @@ const AddEditEmployeeForm: React.FC<AddEditEmployeeFormProps> = ({
   }, [employee]);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    if (field.startsWith('bankDetails.')) {
+      const bankField = field.replace('bankDetails.', '');
+      setFormData(prev => ({
+        ...prev,
+        bankDetails: {
+          ...prev.bankDetails,
+          [bankField]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleDateChange = (field: string, date: Date | undefined) => {
@@ -98,11 +120,37 @@ const AddEditEmployeeForm: React.FC<AddEditEmployeeFormProps> = ({
 
     try {
       const authToken = sessionStorage.getItem('authToken');
-      const url = employee?.id 
-        ? `https://pel-gel-backend.onrender.com/v1/api/employee/${employee.id}`
-        : 'https://pel-gel-backend.onrender.com/v1/api/employee';
+      const url = employee?._id 
+        ? `https://pel-gel-backend.onrender.com/v1/api/employees/${employee._id}`
+        : 'https://pel-gel-backend.onrender.com/v1/api/employees';
       
-      const method = employee?.id ? 'PUT' : 'POST';
+      const method = employee?._id ? 'PUT' : 'POST';
+
+      const requestBody = {
+        title: formData.title,
+        firstName: formData.firstName,
+        middleName: formData.middleName,
+        lastName: formData.lastName,
+        email: formData.email,
+        department: formData.department,
+        cader: formData.cader,
+        empCode: formData.empCode,
+        designation: formData.designation,
+        pfNo: formData.pfNumber,
+        uanNumber: formData.uanNumber,
+        sonDaughterOf: formData.sonOf,
+        dateOfBirth: formData.dateOfBirth?.toISOString(),
+        joiningDate: formData.dateOfJoining?.toISOString(),
+        dateOfProbation: formData.dateOfProbation?.toISOString(),
+        basic: Number(formData.basic) || 0,
+        hra: Number(formData.hra) || 0,
+        ca: Number(formData.ca) || 0,
+        sa: Number(formData.sa) || 0,
+        bankDetails: formData.bankDetails,
+        isDeleted: false,
+      };
+
+      console.log('Submitting employee data:', requestBody);
 
       const response = await fetch(url, {
         method,
@@ -110,24 +158,22 @@ const AddEditEmployeeForm: React.FC<AddEditEmployeeFormProps> = ({
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          name: `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim(),
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (response.ok) {
         toast({
           title: "Success",
-          description: `Employee ${employee?.id ? 'updated' : 'created'} successfully`,
+          description: `Employee ${employee?._id ? 'updated' : 'created'} successfully`,
         });
         onSave();
       } else {
         const errorData = await response.json();
+        console.error('API Error:', errorData);
         toast({
           variant: "destructive",
           title: "Error",
-          description: errorData.message || `Failed to ${employee?.id ? 'update' : 'create'} employee`,
+          description: errorData.message || `Failed to ${employee?._id ? 'update' : 'create'} employee`,
         });
       }
     } catch (error) {
@@ -247,8 +293,8 @@ const AddEditEmployeeForm: React.FC<AddEditEmployeeFormProps> = ({
           <div className="space-y-2">
             <Label>Employee Code</Label>
             <Input
-              value={formData.employeeCode}
-              onChange={(e) => handleInputChange('employeeCode', e.target.value)}
+              value={formData.empCode}
+              onChange={(e) => handleInputChange('empCode', e.target.value)}
               required
             />
           </div>
@@ -280,8 +326,8 @@ const AddEditEmployeeForm: React.FC<AddEditEmployeeFormProps> = ({
           <div className="space-y-2">
             <Label>Son/Daughter Of</Label>
             <Input
-              value={formData.sonDaughterOf}
-              onChange={(e) => handleInputChange('sonDaughterOf', e.target.value)}
+              value={formData.sonOf}
+              onChange={(e) => handleInputChange('sonOf', e.target.value)}
             />
           </div>
           <DatePicker field="dateOfBirth" label="Date of Birth" />
@@ -298,8 +344,8 @@ const AddEditEmployeeForm: React.FC<AddEditEmployeeFormProps> = ({
             <Label>Basic</Label>
             <Input
               type="number"
-              value={formData.basicSalary}
-              onChange={(e) => handleInputChange('basicSalary', e.target.value)}
+              value={formData.basic}
+              onChange={(e) => handleInputChange('basic', e.target.value)}
             />
           </div>
           <div className="space-y-2">
@@ -336,29 +382,29 @@ const AddEditEmployeeForm: React.FC<AddEditEmployeeFormProps> = ({
           <div className="space-y-2">
             <Label>Bank Name</Label>
             <Input
-              value={formData.bankName}
-              onChange={(e) => handleInputChange('bankName', e.target.value)}
+              value={formData.bankDetails.bankName}
+              onChange={(e) => handleInputChange('bankDetails.bankName', e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label>Account Number</Label>
             <Input
-              value={formData.accountNumber}
-              onChange={(e) => handleInputChange('accountNumber', e.target.value)}
+              value={formData.bankDetails.accountNumber}
+              onChange={(e) => handleInputChange('bankDetails.accountNumber', e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label>Account Holder Name</Label>
             <Input
-              value={formData.accountHolderName}
-              onChange={(e) => handleInputChange('accountHolderName', e.target.value)}
+              value={formData.bankDetails.accountHolderName}
+              onChange={(e) => handleInputChange('bankDetails.accountHolderName', e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label>IFSC Code</Label>
             <Input
-              value={formData.ifscCode}
-              onChange={(e) => handleInputChange('ifscCode', e.target.value)}
+              value={formData.bankDetails.ifscCode}
+              onChange={(e) => handleInputChange('bankDetails.ifscCode', e.target.value)}
             />
           </div>
         </div>
@@ -379,7 +425,7 @@ const AddEditEmployeeForm: React.FC<AddEditEmployeeFormProps> = ({
           className="bg-blue-600 hover:bg-blue-700"
           disabled={isLoading}
         >
-          {isLoading ? "Saving..." : employee?.id ? "UPDATE" : "ADD"}
+          {isLoading ? "Saving..." : employee?._id ? "UPDATE" : "ADD"}
         </Button>
       </div>
     </form>
