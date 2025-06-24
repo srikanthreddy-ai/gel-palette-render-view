@@ -329,35 +329,65 @@ const ProductionIncentiveEntry = () => {
     }
 
     setIsLoading(true);
+    
     try {
       const authToken = sessionStorage.getItem('authToken');
-      const payload = {
-        productionDate: format(productionDate, 'yyyy-MM-dd'),
-        buildingId: selectedBuilding,
-        natureId: selectedNature,
-        shiftId: selectedShift,
-        customers: selectedCustomers.map(customer => ({
-          empId: customer.id,
-          empCode: customer.empCode,
-          incentive: customer.incentive
-        }))
-      };
+      
+      // Get selected nature and shift objects for additional data
+      const selectedNatureData = natures.find(nature => nature._id === selectedNature);
+      const selectedShiftData = shifts.find(shift => shift._id === selectedShift);
+      
+      let successCount = 0;
+      let errorCount = 0;
+      
+      // Send data for each customer one by one
+      for (const customer of selectedCustomers) {
+        const payload = {
+          productionDate: format(productionDate, 'yyyy-MM-dd'),
+          building_id: selectedBuilding,
+          nature_id: selectedNature,
+          employee_id: customer.id,
+          shift_id: selectedShift,
+          shiftName: selectedShiftData?.shiftName || '',
+          shiftHrs: shiftHrs,
+          manpower: manpower,
+          employeeCode: customer.empCode,
+          incentiveAmount: customer.incentive,
+          productionType: selectedNatureData?.productionType || '',
+          norms: norms,
+        };
 
-      console.log('Submitting timesheet:', payload);
+        console.log('Submitting timesheet for customer:', customer.customerName, payload);
 
-      const response = await fetch(`${baseURL}/createTimeSheet`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
+        try {
+          const response = await fetch(`${baseURL}/createTimeSheet`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+          });
 
-      if (response.ok) {
+          if (response.ok) {
+            successCount++;
+            console.log(`Successfully created timesheet for ${customer.customerName}`);
+          } else {
+            errorCount++;
+            const errorData = await response.json();
+            console.error(`Failed to create timesheet for ${customer.customerName}:`, errorData);
+          }
+        } catch (error) {
+          errorCount++;
+          console.error(`Error creating timesheet for ${customer.customerName}:`, error);
+        }
+      }
+
+      // Show final result
+      if (successCount > 0 && errorCount === 0) {
         toast({
           title: "Success",
-          description: "Time sheet created successfully",
+          description: `Time sheets created successfully for all ${successCount} customers`,
         });
         
         // Reset form
@@ -371,16 +401,21 @@ const ProductionIncentiveEntry = () => {
         setShiftHrs('');
         setSelectedCustomers([]);
         setCustomerSearch('');
+      } else if (successCount > 0 && errorCount > 0) {
+        toast({
+          variant: "destructive",
+          title: "Partial Success",
+          description: `${successCount} time sheets created successfully, ${errorCount} failed`,
+        });
       } else {
-        const errorData = await response.json();
         toast({
           variant: "destructive",
           title: "Error",
-          description: errorData.message || "Failed to create time sheet",
+          description: `Failed to create time sheets for all customers`,
         });
       }
     } catch (error) {
-      console.error('Error creating timesheet:', error);
+      console.error('Error in submit process:', error);
       toast({
         variant: "destructive",
         title: "Error",
