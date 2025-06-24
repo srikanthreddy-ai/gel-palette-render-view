@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Home, FileText, Users, BarChart3, Database, Settings, LogOut, ChevronDown } from 'lucide-react';
 import {
@@ -35,7 +34,6 @@ const AppSidebar = () => {
       url: "#",
       module: "incentives",
       subItems: [
-        { title: "View Incentives", url: "/incentives" },
         { title: "Add Incentive", url: "/incentives/add" },
         { title: "Add Allowance", url: "/incentives/add-allowance" },
         { title: "Add General Incentive", url: "/incentives/add-general" }
