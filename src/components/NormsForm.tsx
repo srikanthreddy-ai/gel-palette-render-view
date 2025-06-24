@@ -68,6 +68,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
   }, []);
 
   useEffect(() => {
+    console.log('Norm prop changed:', norm);
     if (norm) {
       // Format incentives for editing
       const formattedIncentives = norm.incentives && norm.incentives.length > 0 
@@ -79,7 +80,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
           }))
         : [{ min: "", max: "", each: "", amount: "" }];
 
-      setFormData({
+      const formDataToSet = {
         building_id: norm.building_id?._id || "",
         productionNature: norm.productionNature || "",
         productionType: norm.productionType || "",
@@ -89,8 +90,12 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         startDate: norm.startDate ? new Date(norm.startDate).toISOString().split('T')[0] : "",
         endDate: norm.endDate ? new Date(norm.endDate).toISOString().split('T')[0] : "",
         incentives: formattedIncentives,
-      });
+      };
+      
+      console.log('Setting form data for edit:', formDataToSet);
+      setFormData(formDataToSet);
     } else {
+      console.log('Resetting form for new norm');
       setFormData({
         building_id: "",
         productionNature: "",
@@ -134,7 +139,9 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         const data = await response.json();
         console.log('Buildings data:', data);
         // Filter out deleted buildings
-        setBuildings(data.data?.filter((building: Building) => !building.isDeleted) || []);
+        const availableBuildings = data.data?.filter((building: Building) => !building.isDeleted) || [];
+        setBuildings(availableBuildings);
+        console.log('Available buildings set:', availableBuildings);
       } else {
         console.error('Buildings API Error:', response.status, response.statusText);
         toast({
@@ -164,6 +171,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
   };
 
   const handleSelectChange = (value: string) => {
+    console.log('Building selected:', value);
     setFormData(prev => ({
       ...prev,
       building_id: value
@@ -197,6 +205,17 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that building is selected
+    if (!formData.building_id) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please select a building",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     console.log('Submitting norms form data:', formData);
 
@@ -279,10 +298,12 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
     }
   };
 
-  // Get the selected building name for display
+  // Get the selected building for display
   const selectedBuilding = buildings.find(building => building._id === formData.building_id);
-  const displayValue = selectedBuilding ? `${selectedBuilding.buildingName} (${selectedBuilding.buildingCode})` : 
-    (norm?.building_id ? `${norm.building_id.buildingName} (${norm.building_id.buildingCode})` : "");
+  
+  console.log('Current formData.building_id:', formData.building_id);
+  console.log('Selected building:', selectedBuilding);
+  console.log('Available buildings:', buildings);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -290,9 +311,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         <Label htmlFor="building_id">Building</Label>
         <Select value={formData.building_id} onValueChange={handleSelectChange} disabled={isBuildingsLoading}>
           <SelectTrigger>
-            <SelectValue placeholder={isBuildingsLoading ? "Loading buildings..." : "Select a building"}>
-              {displayValue || (isBuildingsLoading ? "Loading buildings..." : "Select a building")}
-            </SelectValue>
+            <SelectValue placeholder={isBuildingsLoading ? "Loading buildings..." : "Select a building"} />
           </SelectTrigger>
           <SelectContent>
             {buildings.map((building) => (
