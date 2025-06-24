@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import AllowanceForm from '@/components/AllowanceForm';
 
 interface Allowance {
   _id: string;
@@ -158,25 +158,17 @@ const AllowanceManagement = () => {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingAllowance ? 'Edit Allowance' : 'New Allowance'}
             </DialogTitle>
           </DialogHeader>
-          <div className="p-4">
-            <p className="text-center text-gray-500">
-              Allowance form will be implemented here
-            </p>
-            <div className="flex justify-end space-x-2 mt-4">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleAllowanceSaved}>
-                Save
-              </Button>
-            </div>
-          </div>
+          <AllowanceForm
+            allowance={editingAllowance}
+            onSave={handleAllowanceSaved}
+            onCancel={() => setIsDialogOpen(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>
