@@ -14,6 +14,7 @@ import ProductionCategoryManagement from "./pages/ProductionCategoryManagement";
 import NormsManagement from "./pages/NormsManagement";
 import ShiftManagement from "./pages/ShiftManagement";
 import AllowanceManagement from "./pages/AllowanceManagement";
+import Reports from "./pages/Reports";
 import DashboardLayout from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
 
@@ -52,6 +53,13 @@ const App = () => (
               <ProtectedRoute>
                 <DashboardLayout>
                   <StaffManagement />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/reports" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <Reports />
                 </DashboardLayout>
               </ProtectedRoute>
             } />
