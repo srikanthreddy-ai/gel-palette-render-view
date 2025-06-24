@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,8 +16,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Search, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -38,6 +45,38 @@ interface NatureCategory {
   isDeleted: boolean;
 }
 
+interface ProductionNature {
+  id: string;
+  name: string;
+  productionType: string;
+  productionCode: string;
+  manpower: number;
+  norms: number;
+  incentives: Array<{
+    min: number;
+    max: number | null;
+    amount: number;
+    each: number;
+  }>;
+  startDate: string;
+  endDate: string;
+}
+
+interface Employee {
+  _id: string;
+  empCode: string;
+  empName: string;
+  department?: string;
+  designation?: string;
+}
+
+interface SelectedCustomer {
+  id: string;
+  customerName: string;
+  empCode: string;
+  incentive: number;
+}
+
 const ProductionIncentiveEntry = () => {
   const [productionDate, setProductionDate] = useState<Date | null>(null);
   const [selectedBuilding, setSelectedBuilding] = useState('');
@@ -45,13 +84,87 @@ const ProductionIncentiveEntry = () => {
   const [selectedShift, setSelectedShift] = useState('');
   const [customerSearch, setCustomerSearch] = useState('');
   
+  // Auto-populated fields
+  const [productionType, setProductionType] = useState('');
+  const [manpower, setManpower] = useState('');
+  const [norms, setNorms] = useState('');
+  const [shiftHrs, setShiftHrs] = useState('');
+  
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [buildings, setBuildings] = useState<NatureCategory[]>([]);
   const [natures, setNatures] = useState<NatureCategory[]>([]);
+  const [allNatureData, setAllNatureData] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [selectedCustomers, setSelectedCustomers] = useState<SelectedCustomer[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   
   const { toast } = useToast();
   const baseURL = 'http://localhost:5000/v1/api';
+
+  const fetchNatureAndBuildings = async () => {
+    try {
+      const authToken = sessionStorage.getItem('authToken');
+      const response = await fetch(`${baseURL}/getNatureListByCategory`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Nature and Buildings data:', data);
+        
+        const allData = data.data || [];
+        setAllNatureData(allData);
+        
+        // Buildings are the top-level items
+        const buildingsData = allData.map((building: any) => ({
+          _id: building.id,
+          name: building.name,
+          category: 'building',
+          isDeleted: false
+        }));
+        
+        // Natures are within productionNatures array of each building
+        const naturesData: any[] = [];
+        allData.forEach((building: any) => {
+          if (building.productionNatures) {
+            building.productionNatures.forEach((nature: any) => {
+              naturesData.push({
+                _id: nature.id,
+                name: nature.name,
+                category: 'nature',
+                isDeleted: false,
+                ...nature
+              });
+            });
+          }
+        });
+        
+        console.log('Processed buildings:', buildingsData);
+        console.log('Processed natures:', naturesData);
+        
+        setBuildings(buildingsData);
+        setNatures(naturesData);
+      } else {
+        console.error('Failed to fetch nature/buildings:', response.status);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch buildings and nature data",
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching nature/buildings:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Unable to connect to the server for nature/buildings",
+      });
+    }
+  };
 
   const fetchShifts = async () => {
     try {
@@ -85,10 +198,16 @@ const ProductionIncentiveEntry = () => {
     }
   };
 
-  const fetchNatureAndBuildings = async () => {
+  const searchEmployees = async (query: string) => {
+    if (query.length < 2) {
+      setEmployees([]);
+      return;
+    }
+
+    setSearchLoading(true);
     try {
       const authToken = sessionStorage.getItem('authToken');
-      const response = await fetch(`${baseURL}/getNatureListByCategory`, {
+      const response = await fetch(`${baseURL}/employeesList?empCode=${query}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -97,53 +216,154 @@ const ProductionIncentiveEntry = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Nature and Buildings data:', data);
-        
-        const allData = data.data || [];
-        
-        // Buildings are the top-level items
-        const buildingsData = allData.map((building: any) => ({
-          _id: building.id,
-          name: building.name,
-          category: 'building',
-          isDeleted: false
-        }));
-        
-        // Natures are within productionNatures array of each building
-        const naturesData: any[] = [];
-        allData.forEach((building: any) => {
-          if (building.productionNatures) {
-            building.productionNatures.forEach((nature: any) => {
-              naturesData.push({
-                _id: nature.id,
-                name: nature.name,
-                category: 'nature',
-                isDeleted: false
-              });
-            });
-          }
-        });
-        
-        console.log('Processed buildings:', buildingsData);
-        console.log('Processed natures:', naturesData);
-        
-        setBuildings(buildingsData);
-        setNatures(naturesData);
+        console.log('Employees search result:', data);
+        setEmployees(data.data || []);
       } else {
-        console.error('Failed to fetch nature/buildings:', response.status);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to fetch buildings and nature data",
-        });
+        console.error('Failed to search employees:', response.status);
+        setEmployees([]);
       }
     } catch (error) {
-      console.error('Error fetching nature/buildings:', error);
+      console.error('Error searching employees:', error);
+      setEmployees([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const handleNatureChange = (natureId: string) => {
+    setSelectedNature(natureId);
+    
+    // Find the selected nature and auto-populate fields
+    const selectedNatureData = natures.find(nature => nature._id === natureId);
+    if (selectedNatureData && selectedNatureData.productionType) {
+      setProductionType(selectedNatureData.productionType);
+      setManpower(selectedNatureData.manpower?.toString() || '');
+      setNorms(selectedNatureData.norms?.toString() || '');
+    }
+  };
+
+  const handleShiftChange = (shiftId: string) => {
+    setSelectedShift(shiftId);
+    
+    // Find the selected shift and auto-populate shift hours
+    const selectedShiftData = shifts.find(shift => shift._id === shiftId);
+    if (selectedShiftData) {
+      setShiftHrs(selectedShiftData.shiftHrs.toString());
+    }
+  };
+
+  const handleCustomerSearchChange = (value: string) => {
+    setCustomerSearch(value);
+    searchEmployees(value);
+  };
+
+  const addCustomerToTable = (employee: Employee) => {
+    // Check if already added
+    if (selectedCustomers.find(customer => customer.empCode === employee.empCode)) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Unable to connect to the server for nature/buildings",
+        description: "Customer already added to the table",
       });
+      return;
+    }
+
+    const newCustomer: SelectedCustomer = {
+      id: employee._id,
+      customerName: employee.empName,
+      empCode: employee.empCode,
+      incentive: 0
+    };
+
+    setSelectedCustomers(prev => [...prev, newCustomer]);
+    setCustomerSearch('');
+    setEmployees([]);
+  };
+
+  const removeCustomerFromTable = (empCode: string) => {
+    setSelectedCustomers(prev => prev.filter(customer => customer.empCode !== empCode));
+  };
+
+  const updateCustomerIncentive = (empCode: string, incentive: number) => {
+    setSelectedCustomers(prev => 
+      prev.map(customer => 
+        customer.empCode === empCode 
+          ? { ...customer, incentive }
+          : customer
+      )
+    );
+  };
+
+  const handleSubmit = async () => {
+    if (!productionDate || !selectedBuilding || !selectedNature || !selectedShift || selectedCustomers.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please fill all required fields and add at least one customer",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const authToken = sessionStorage.getItem('authToken');
+      const payload = {
+        productionDate: format(productionDate, 'yyyy-MM-dd'),
+        buildingId: selectedBuilding,
+        natureId: selectedNature,
+        shiftId: selectedShift,
+        customers: selectedCustomers.map(customer => ({
+          empId: customer.id,
+          empCode: customer.empCode,
+          incentive: customer.incentive
+        }))
+      };
+
+      console.log('Submitting timesheet:', payload);
+
+      const response = await fetch(`${baseURL}/createTimeSheet`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Time sheet created successfully",
+        });
+        
+        // Reset form
+        setProductionDate(null);
+        setSelectedBuilding('');
+        setSelectedNature('');
+        setSelectedShift('');
+        setProductionType('');
+        setManpower('');
+        setNorms('');
+        setShiftHrs('');
+        setSelectedCustomers([]);
+        setCustomerSearch('');
+      } else {
+        const errorData = await response.json();
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: errorData.message || "Failed to create time sheet",
+        });
+      }
+    } catch (error) {
+      console.error('Error creating timesheet:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Unable to connect to the server",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -221,7 +441,7 @@ const ProductionIncentiveEntry = () => {
             {/* Production Nature */}
             <div className="space-y-2">
               <Label>Production Nature</Label>
-              <Select value={selectedNature} onValueChange={setSelectedNature} disabled={isLoading}>
+              <Select value={selectedNature} onValueChange={handleNatureChange} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue placeholder={isLoading ? "Loading..." : "Select Nature"} />
                 </SelectTrigger>
@@ -238,7 +458,7 @@ const ProductionIncentiveEntry = () => {
             {/* Production Shift */}
             <div className="space-y-2">
               <Label>Production Shift</Label>
-              <Select value={selectedShift} onValueChange={setSelectedShift} disabled={isLoading}>
+              <Select value={selectedShift} onValueChange={handleShiftChange} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue placeholder={isLoading ? "Loading..." : "Select Shift"} />
                 </SelectTrigger>
@@ -253,15 +473,131 @@ const ProductionIncentiveEntry = () => {
             </div>
           </div>
 
+          {/* Second Row - Auto-populated fields */}
+          <div className="grid grid-cols-4 gap-6 mb-6">
+            <div className="space-y-2">
+              <Label>Production Type</Label>
+              <Input value={productionType} readOnly className="bg-gray-50" />
+            </div>
+            <div className="space-y-2">
+              <Label>Man power</Label>
+              <Input value={manpower} readOnly className="bg-gray-50" />
+            </div>
+            <div className="space-y-2">
+              <Label>Norms</Label>
+              <Input value={norms} readOnly className="bg-gray-50" />
+            </div>
+            <div className="space-y-2">
+              <Label>Shift Hrs</Label>
+              <Input value={shiftHrs} readOnly className="bg-gray-50" />
+            </div>
+          </div>
+
           {/* Search Customer */}
           <div className="space-y-2 mb-6">
             <Label>Search Customer</Label>
-            <Input
-              placeholder="Start typing customer name..."
-              value={customerSearch}
-              onChange={(e) => setCustomerSearch(e.target.value)}
-              className="w-full"
-            />
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Start typing customer name..."
+                value={customerSearch}
+                onChange={(e) => handleCustomerSearchChange(e.target.value)}
+                className="pl-10"
+              />
+              {searchLoading && (
+                <div className="absolute right-3 top-3 text-sm text-gray-500">
+                  Searching...
+                </div>
+              )}
+            </div>
+            
+            {/* Employee Search Results */}
+            {employees.length > 0 && (
+              <div className="mt-2 border rounded-md bg-white shadow-sm max-h-48 overflow-y-auto">
+                {employees.map((employee) => (
+                  <div
+                    key={employee._id}
+                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex items-center justify-between"
+                    onClick={() => addCustomerToTable(employee)}
+                  >
+                    <div>
+                      <div className="font-medium">{employee.empName}</div>
+                      <div className="text-sm text-gray-500">Code: {employee.empCode}</div>
+                    </div>
+                    <Plus className="h-4 w-4 text-green-600" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Selected Customers Table */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Selected Customers</h3>
+            <div className="border rounded-md">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16">#</TableHead>
+                    <TableHead>Customer Name</TableHead>
+                    <TableHead>Employee Code</TableHead>
+                    <TableHead>Incentive</TableHead>
+                    <TableHead className="w-20">Add</TableHead>
+                    <TableHead className="w-20">Remove</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedCustomers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-gray-500 py-8">
+                        No customers selected
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    selectedCustomers.map((customer, index) => (
+                      <TableRow key={customer.empCode}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{customer.customerName}</TableCell>
+                        <TableCell>{customer.empCode}</TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={customer.incentive}
+                            onChange={(e) => updateCustomerIncentive(customer.empCode, Number(e.target.value))}
+                            className="w-20"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                            ADD
+                          </Button>
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => removeCustomerFromTable(customer.empCode)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="mt-6 flex justify-end">
+            <Button 
+              onClick={handleSubmit} 
+              disabled={isLoading}
+              className="px-8"
+            >
+              {isLoading ? "Submitting..." : "Submit"}
+            </Button>
           </div>
 
           {/* Debug Info */}
@@ -275,6 +611,7 @@ const ProductionIncentiveEntry = () => {
             <p>Shifts loaded: {shifts.length}</p>
             <p>Buildings loaded: {buildings.length}</p>
             <p>Natures loaded: {natures.length}</p>
+            <p>Selected customers: {selectedCustomers.length}</p>
           </div>
         </CardContent>
       </Card>
