@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,8 +58,8 @@ const ViewAllowanceRecords = () => {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Auth token:', authToken ? 'Present' : 'Missing');
 
-      // This endpoint might need to be updated based on your actual API
-      const response = await fetch(`https://pel-gel-backend.onrender.com/v1/api/getAllowanceRecords?fromDate=${fromDate}&toDate=${toDate}`, {
+      // Updated endpoint to use getEmpAllowences
+      const response = await fetch(`https://pel-gel-backend.onrender.com/v1/api/getEmpAllowences?fromDate=${fromDate}&toDate=${toDate}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
