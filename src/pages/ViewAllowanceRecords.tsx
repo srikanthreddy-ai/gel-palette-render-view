@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -71,9 +72,22 @@ const ViewAllowanceRecords = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Allowance records data:', data);
-        setAllowanceRecords(data.data || []);
         
-        if (!data.data || data.data.length === 0) {
+        // Transform the API data to match our interface
+        const transformedRecords = (data.data || []).map((record: any) => ({
+          _id: record._id,
+          employeeId: record.empCode,
+          employeeName: record.employee_id?.fullName || 'Unknown',
+          allowanceType: record.allowance_id?.allowence || 'Unknown',
+          amount: parseFloat(record.amount) || 0, // Convert string to number
+          date: record.productionDate,
+          shift: record.allowance_id?.shift || 'Unknown',
+          department: 'Unknown' // This field is not in the API response
+        }));
+        
+        setAllowanceRecords(transformedRecords);
+        
+        if (transformedRecords.length === 0) {
           toast({
             title: "No Records Found",
             description: "No allowance records found for the selected date range",
@@ -100,7 +114,7 @@ const ViewAllowanceRecords = () => {
   };
 
   const calculateTotal = () => {
-    return allowanceRecords.reduce((total, record) => total + record.amount, 0);
+    return allowanceRecords.reduce((total, record) => total + (parseFloat(String(record.amount)) || 0), 0);
   };
 
   return (
