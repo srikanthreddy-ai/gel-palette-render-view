@@ -281,6 +281,17 @@ const ProductionIncentiveEntry = () => {
       return;
     }
 
+    // Check if manpower limit is reached
+    const manpowerLimit = parseInt(manpower) || 0;
+    if (selectedCustomers.length >= manpowerLimit) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: `Cannot add more customers. Maximum limit is ${manpowerLimit} (Manpower)`,
+      });
+      return;
+    }
+
     const newCustomer: SelectedCustomer = {
       id: employee._id,
       customerName: employee.fullName,
@@ -546,7 +557,14 @@ const ProductionIncentiveEntry = () => {
 
           {/* Selected Customers Table */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Selected Customers</h3>
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Selected Customers</h3>
+              {manpower && (
+                <div className="text-sm text-gray-500">
+                  {selectedCustomers.length} / {manpower} customers selected
+                </div>
+              )}
+            </div>
             <div className="border rounded-md">
               <Table>
                 <TableHeader>
@@ -555,14 +573,13 @@ const ProductionIncentiveEntry = () => {
                     <TableHead>Customer Name</TableHead>
                     <TableHead>Employee Code</TableHead>
                     <TableHead>Incentive</TableHead>
-                    <TableHead className="w-20">Add</TableHead>
                     <TableHead className="w-20">Remove</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {selectedCustomers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-gray-500 py-8">
+                      <TableCell colSpan={5} className="text-center text-gray-500 py-8">
                         No customers selected
                       </TableCell>
                     </TableRow>
@@ -579,11 +596,6 @@ const ProductionIncentiveEntry = () => {
                             onChange={(e) => updateCustomerIncentive(customer.empCode, Number(e.target.value))}
                             className="w-20"
                           />
-                        </TableCell>
-                        <TableCell>
-                          <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                            ADD
-                          </Button>
                         </TableCell>
                         <TableCell>
                           <Button 
