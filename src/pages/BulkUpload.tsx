@@ -43,6 +43,7 @@ const BulkUpload = () => {
 
     try {
       const authToken = sessionStorage.getItem('authToken');
+      const baseUrl = 'https://pel-gel-backend.onrender.com/v1/api';
       
       if (!authToken) {
         toast({
@@ -53,44 +54,20 @@ const BulkUpload = () => {
         return;
       }
 
-      // For employee master, use the specific API endpoint
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      let uploadUrl = '';
+      let successMessage = '';
+
+      // Determine the correct API endpoint based on master type
       if (masterType === 'employee') {
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-
-        console.log('Making POST request to employee upload API');
-
-        const response = await fetch('https://pel-gel-backend.onrender.com/v1/api/employeeUpload', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-          },
-          body: formData,
-        });
-
-        console.log('Response status:', response.status);
-
-        if (response.ok) {
-          const result = await response.json();
-          console.log('Upload response:', result);
-          
-          toast({
-            title: "Upload completed",
-            description: `Successfully uploaded ${selectedFile.name} for Employee Master.`
-          });
-          
-          setSelectedFile(null);
-          setMasterType('');
-        } else {
-          const errorData = await response.text();
-          console.error('Upload error:', response.status, errorData);
-          
-          toast({
-            title: "Upload failed",
-            description: "Failed to upload employee data. Please check the file format and try again.",
-            variant: "destructive"
-          });
-        }
+        uploadUrl = `${baseUrl}/employeeUpload`;
+        successMessage = `Successfully uploaded ${selectedFile.name} for Employee Master.`;
+      } else if (masterType === 'building') {
+        uploadUrl = `${baseUrl}/masterDataUpload`;
+        formData.append('type', 'building');
+        successMessage = `Successfully uploaded ${selectedFile.name} for Building Master.`;
       } else {
         // For other master types, show a placeholder message
         toast({
@@ -98,7 +75,6 @@ const BulkUpload = () => {
           description: `Uploading ${selectedFile.name} for ${masterType} master...`
         });
 
-        // Simulate upload for other master types (to be implemented later)
         setTimeout(() => {
           toast({
             title: "Upload completed",
@@ -109,6 +85,40 @@ const BulkUpload = () => {
           setIsUploading(false);
         }, 2000);
         return;
+      }
+
+      console.log('Making POST request to:', uploadUrl);
+
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+        body: formData,
+      });
+
+      console.log('Response status:', response.status);
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Upload response:', result);
+        
+        toast({
+          title: "Upload completed",
+          description: successMessage
+        });
+        
+        setSelectedFile(null);
+        setMasterType('');
+      } else {
+        const errorData = await response.text();
+        console.error('Upload error:', response.status, errorData);
+        
+        toast({
+          title: "Upload failed",
+          description: `Failed to upload ${masterType} data. Please check the file format and try again.`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Upload error:', error);
@@ -217,6 +227,7 @@ const BulkUpload = () => {
             <li>Duplicate entries will be skipped during upload</li>
             <li>Invalid data rows will be reported after upload completion</li>
             <li>Employee Master uploads use the dedicated employeeUpload API</li>
+            <li>Building Master uploads use the masterDataUpload API with type parameter</li>
           </ul>
         </CardContent>
       </Card>
