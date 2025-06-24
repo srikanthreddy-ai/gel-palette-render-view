@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,6 @@ const BulkUpload = () => {
   const masterTypes = [
     { value: 'building', label: 'Building Master' },
     { value: 'norms', label: 'Norms Master' },
-    { value: 'shift', label: 'Shift Master' },
     { value: 'allowance', label: 'Allowance Master' },
     { value: 'employee', label: 'Employee Master' }
   ];
