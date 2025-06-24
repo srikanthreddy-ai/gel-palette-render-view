@@ -68,6 +68,9 @@ const BulkUpload = () => {
         uploadUrl = `${baseUrl}/masterDataUpload`;
         formData.append('type', 'building');
         successMessage = `Successfully uploaded ${selectedFile.name} for Building Master.`;
+      } else if (masterType === 'allowance') {
+        uploadUrl = `${baseUrl}/AllowenceDataUpload`;
+        successMessage = `Successfully uploaded ${selectedFile.name} for Allowance Master.`;
       } else {
         // For other master types, show a placeholder message
         toast({
@@ -228,6 +231,7 @@ const BulkUpload = () => {
             <li>Invalid data rows will be reported after upload completion</li>
             <li>Employee Master uploads use the dedicated employeeUpload API</li>
             <li>Building Master uploads use the masterDataUpload API with type parameter</li>
+            <li>Allowance Master uploads use the AllowenceDataUpload API</li>
           </ul>
         </CardContent>
       </Card>
