@@ -1,90 +1,131 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
   const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Simple authentication logic for demo
-    if (username && password) {
-      const userData = {
-        username: username,
-        role: username === 'admin' ? 'admin' : 'user'
-      };
-      
-      login(userData);
-      navigate('/dashboard');
-      
-      toast({
-        title: "Login successful",
-        description: `Welcome back, ${username}!`,
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('https://pel-gel-backend.onrender.com/v1/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
       });
-    } else {
+
+      const data = await response.json();
+
+      if (response.ok && data.token) {
+        // Store token and username in session storage
+        sessionStorage.setItem("authToken", data.token);
+        sessionStorage.setItem("userName", username);
+        
+        // Update auth context with user data
+        login({
+          username: username,
+          role: data.role || 'user' // Use role from API response or default to 'user'
+        });
+
+        // Navigate to dashboard
+        navigate('/dashboard');
+        
+        toast({
+          title: "Login Successful",
+          description: `Welcome back, ${username}!`,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: data.message || "Invalid username or password",
+        });
+      }
+    } catch (error) {
+      console.error('Login error:', error);
       toast({
-        title: "Login failed",
-        description: "Please enter both username and password.",
         variant: "destructive",
+        title: "Login Error",
+        description: "Unable to connect to the server. Please try again.",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
-                required
-              />
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="max-w-md w-full space-y-8 p-8">
+        <div className="text-center">
+          <div className="flex justify-center mb-6">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-12 bg-red-500 rounded-sm flex items-center justify-center">
+                <div className="w-3 h-8 bg-white rounded-full"></div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-red-500">Premier</h1>
+                <h2 className="text-2xl font-bold text-red-500">Explosives</h2>
+                <h3 className="text-2xl font-bold text-red-500">Limited</h3>
+              </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-              />
-            </div>
-            
-            <Button type="submit" className="w-full">
-              Login
-            </Button>
-          </form>
-          
-          <div className="mt-4 text-sm text-gray-600 text-center">
-            <p>Demo credentials:</p>
-            <p>Username: admin, Password: any</p>
-            <p>Username: user, Password: any</p>
           </div>
-        </CardContent>
-      </Card>
+          <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
+          <p className="mt-2 text-gray-600">Please login to your account</p>
+        </div>
+        
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+          <div className="space-y-4">
+            <Input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="h-12"
+              required
+              disabled={isLoading}
+            />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="h-12"
+              required
+              disabled={isLoading}
+            />
+          </div>
+          
+          <Button
+            type="submit"
+            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+            disabled={isLoading}
+          >
+            {isLoading ? "Signing In..." : "SIGN IN"}
+          </Button>
+          
+          <div className="text-center">
+            <a href="#" className="text-gray-600 hover:text-gray-800">
+              Forgot password?
+            </a>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
