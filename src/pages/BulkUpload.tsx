@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Upload } from 'lucide-react';
+import { API_ENDPOINTS } from '@/config/api';
 
 const BulkUpload = () => {
   const { toast } = useToast();
@@ -41,7 +43,6 @@ const BulkUpload = () => {
 
     try {
       const authToken = sessionStorage.getItem('authToken');
-      const baseUrl = 'https://pel-gel-backend.onrender.com/v1/api';
       
       if (!authToken) {
         toast({
@@ -60,14 +61,14 @@ const BulkUpload = () => {
 
       // Determine the correct API endpoint based on master type
       if (masterType === 'employee') {
-        uploadUrl = `${baseUrl}/employeeUpload`;
+        uploadUrl = API_ENDPOINTS.EMPLOYEE_UPLOAD;
         successMessage = `Successfully uploaded ${selectedFile.name} for Employee Master.`;
       } else if (masterType === 'building') {
-        uploadUrl = `${baseUrl}/masterDataUpload`;
+        uploadUrl = API_ENDPOINTS.MASTER_DATA_UPLOAD;
         formData.append('type', 'building');
         successMessage = `Successfully uploaded ${selectedFile.name} for Building Master.`;
       } else if (masterType === 'allowance') {
-        uploadUrl = `${baseUrl}/AllowenceDataUpload`;
+        uploadUrl = API_ENDPOINTS.ALLOWANCE_DATA_UPLOAD;
         successMessage = `Successfully uploaded ${selectedFile.name} for Allowance Master.`;
       } else {
         // For other master types, show a placeholder message

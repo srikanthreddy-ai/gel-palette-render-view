@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
+import { API_ENDPOINTS } from '@/config/api';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -19,7 +20,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://pel-gel-backend.onrender.com/v1/api/login', {
+      const response = await fetch(API_ENDPOINTS.LOGIN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

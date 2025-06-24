@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
+import { API_ENDPOINTS } from '@/config/api';
 
 interface Allowance {
   _id: string;
@@ -75,8 +75,8 @@ const AllowanceForm: React.FC<AllowanceFormProps> = ({ allowance, onSave, onCanc
 
       const isEditing = !!allowance;
       const url = isEditing 
-        ? `https://pel-gel-backend.onrender.com/v1/api/updateAllowence/${allowance._id}`
-        : 'https://pel-gel-backend.onrender.com/v1/api/createAllowence';
+        ? API_ENDPOINTS.UPDATE_ALLOWANCE(allowance._id)
+        : API_ENDPOINTS.CREATE_ALLOWANCE;
       
       const method = isEditing ? 'PUT' : 'POST';
       
