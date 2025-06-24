@@ -20,7 +20,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { ChevronDown, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { API_ENDPOINTS } from '@/config/api';
+import { API_ENDPOINTS, API_CONFIG } from '@/config/api';
 
 interface Building {
   _id: string;
@@ -38,6 +38,7 @@ const AddGeneralIncentive = () => {
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [isLoadingBuildings, setIsLoadingBuildings] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [productionDate, setProductionDate] = useState('');
   
   const { toast } = useToast();
 
@@ -146,6 +147,15 @@ const AddGeneralIncentive = () => {
       return;
     }
 
+    if (!productionDate) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Please select a production date",
+      });
+      return;
+    }
+
     // Check if all selected buildings have amounts
     const hasEmptyAmounts = selectedBuildings.some(buildingId => 
       !buildingAmounts[buildingId] || buildingAmounts[buildingId] <= 0
@@ -170,13 +180,14 @@ const AddGeneralIncentive = () => {
       const incentiveData = selectedBuildings.map(buildingId => ({
         building_id: buildingId,
         amount: buildingAmounts[buildingId],
+        production_date: productionDate,
         type: 'general_incentive'
       }));
 
       console.log('Creating general incentives:', incentiveData);
 
       // Note: This endpoint might need to be updated based on your actual API
-      const response = await fetch(`${API_ENDPOINTS.API_CONFIG.BASE_URL}/createGeneralIncentive`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/createGeneralIncentive`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -194,6 +205,7 @@ const AddGeneralIncentive = () => {
         // Reset form
         setSelectedBuildings([]);
         setBuildingAmounts({});
+        setProductionDate('');
       } else {
         throw new Error('Failed to create general incentive records');
       }
@@ -223,6 +235,18 @@ const AddGeneralIncentive = () => {
           <CardTitle>Add General Incentive</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Production Date */}
+          <div>
+            <Label htmlFor="productionDate">Production Date</Label>
+            <Input
+              id="productionDate"
+              type="date"
+              value={productionDate}
+              onChange={(e) => setProductionDate(e.target.value)}
+              className="mt-2"
+            />
+          </div>
+
           {/* Building Selection */}
           <div>
             <Label>Select Buildings</Label>
@@ -313,7 +337,7 @@ const AddGeneralIncentive = () => {
           <div className="flex justify-end">
             <Button 
               onClick={handleSubmit} 
-              disabled={isSubmitting || selectedBuildings.length === 0}
+              disabled={isSubmitting || selectedBuildings.length === 0 || !productionDate}
               className="bg-blue-600 hover:bg-blue-700"
             >
               {isSubmitting ? 'Saving...' : 'Save General Incentive'}
