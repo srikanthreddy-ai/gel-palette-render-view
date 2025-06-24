@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -97,7 +98,7 @@ const ProductionIncentiveEntry = () => {
   const [selectedShift, setSelectedShift] = useState('');
   const [customerSearch, setCustomerSearch] = useState('');
   
-  // Auto-populated fields
+  // Auto-populated fields (now editable)
   const [productionType, setProductionType] = useState('');
   const [manpower, setManpower] = useState('');
   const [norms, setNorms] = useState('');
@@ -543,7 +544,7 @@ const ProductionIncentiveEntry = () => {
             </div>
           </div>
 
-          {/* Second Row - Auto-populated fields */}
+          {/* Second Row - Editable fields */}
           <div className="grid grid-cols-4 gap-6 mb-6">
             <div className="space-y-2">
               <Label>Production Type</Label>
@@ -551,15 +552,31 @@ const ProductionIncentiveEntry = () => {
             </div>
             <div className="space-y-2">
               <Label>Man power</Label>
-              <Input value={manpower} readOnly className="bg-gray-50" />
+              <Input 
+                value={manpower} 
+                onChange={(e) => setManpower(e.target.value)}
+                type="number"
+                min="0"
+              />
             </div>
             <div className="space-y-2">
               <Label>Norms</Label>
-              <Input value={norms} readOnly className="bg-gray-50" />
+              <Input 
+                value={norms} 
+                onChange={(e) => setNorms(e.target.value)}
+                type="number"
+                min="0"
+              />
             </div>
             <div className="space-y-2">
               <Label>Shift Hrs</Label>
-              <Input value={shiftHrs} readOnly className="bg-gray-50" />
+              <Input 
+                value={shiftHrs} 
+                onChange={(e) => setShiftHrs(e.target.value)}
+                type="number"
+                min="0"
+                step="0.5"
+              />
             </div>
           </div>
 
@@ -594,7 +611,6 @@ const ProductionIncentiveEntry = () => {
                       <div className="font-medium">{employee.fullName}</div>
                       <div className="text-sm text-gray-500">Code: {employee.empCode}</div>
                     </div>
-                    <Plus className="h-4 w-4 text-green-600" />
                   </div>
                 ))}
               </div>
