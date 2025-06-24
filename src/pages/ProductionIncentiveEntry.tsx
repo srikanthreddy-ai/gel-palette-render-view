@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -103,6 +102,7 @@ const ProductionIncentiveEntry = () => {
   const [manpower, setManpower] = useState('');
   const [norms, setNorms] = useState('');
   const [shiftHrs, setShiftHrs] = useState('');
+  const [originalNorms, setOriginalNorms] = useState(0); // Store original norms for calculation
   
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [buildings, setBuildings] = useState<NatureCategory[]>([]);
@@ -251,8 +251,12 @@ const ProductionIncentiveEntry = () => {
     const selectedNatureData = natures.find(nature => nature._id === natureId);
     if (selectedNatureData && selectedNatureData.productionType) {
       setProductionType(selectedNatureData.productionType);
-      setManpower(selectedNatureData.manpower?.toString() || '');
-      setNorms(selectedNatureData.norms?.toString() || '');
+      const originalManpower = selectedNatureData.manpower || 1;
+      const originalNormsValue = selectedNatureData.norms || 0;
+      
+      setManpower(originalManpower.toString());
+      setNorms(originalNormsValue.toString());
+      setOriginalNorms(originalNormsValue);
     }
   };
 
@@ -263,6 +267,17 @@ const ProductionIncentiveEntry = () => {
     const selectedShiftData = shifts.find(shift => shift._id === shiftId);
     if (selectedShiftData) {
       setShiftHrs(selectedShiftData.shiftHrs.toString());
+    }
+  };
+
+  const handleManpowerChange = (value: string) => {
+    setManpower(value);
+    
+    // Recalculate norms based on new manpower
+    const newManpower = parseInt(value) || 1;
+    if (originalNorms > 0) {
+      const calculatedNorms = originalNorms / newManpower;
+      setNorms(calculatedNorms.toString());
     }
   };
 
@@ -554,9 +569,9 @@ const ProductionIncentiveEntry = () => {
               <Label>Man power</Label>
               <Input 
                 value={manpower} 
-                onChange={(e) => setManpower(e.target.value)}
+                onChange={(e) => handleManpowerChange(e.target.value)}
                 type="number"
-                min="0"
+                min="1"
               />
             </div>
             <div className="space-y-2">
