@@ -276,8 +276,16 @@ const ProductionIncentiveEntry = () => {
   };
 
   const calculateIncentiveAmount = () => {
+    console.log('=== Incentive Calculation Debug ===');
+    console.log('selectedNature:', selectedNature);
+    console.log('originalNorms:', originalNorms);
+    console.log('current norms:', norms);
+    console.log('current manpower:', manpower);
+    console.log('current shiftHrs:', shiftHrs);
+
     // If any required values are missing, return 0
     if (!selectedNature || !originalNorms || !norms || !manpower || !shiftHrs) {
+      console.log('Missing required values, returning 0');
       return 0;
     }
 
@@ -285,22 +293,31 @@ const ProductionIncentiveEntry = () => {
     const currentManpower = parseInt(manpower) || 1;
     const currentShiftHrs = parseFloat(shiftHrs) || 1;
 
+    console.log('Parsed values:', { currentNorms, currentManpower, currentShiftHrs });
+    console.log('Original values:', { originalNorms, originalManpower, originalShiftHrs });
+
     // If values are same as original (no change), incentive is 0
     if (currentNorms === originalNorms && currentManpower === originalManpower && currentShiftHrs === originalShiftHrs) {
+      console.log('No changes detected, incentive is 0');
       return 0;
     }
 
     // Find the selected nature data to get incentives
     const selectedNatureData = natures.find(nature => nature._id === selectedNature);
     if (!selectedNatureData || !selectedNatureData.incentives) {
+      console.log('No nature data or incentives found');
       return 0;
     }
 
+    console.log('Selected nature incentives:', selectedNatureData.incentives);
+
     // Calculate the difference between updated norms and original norms
     const difference = currentNorms - originalNorms;
+    console.log('Norms difference:', difference);
 
     // If difference is less than or equal to 0, no incentive
     if (difference <= 0) {
+      console.log('Difference is <= 0, no incentive');
       return 0;
     }
 
@@ -308,21 +325,33 @@ const ProductionIncentiveEntry = () => {
     const incentiveTiers = selectedNatureData.incentives;
     let applicableTier = null;
 
+    console.log('Checking tiers for difference:', difference);
     for (const tier of incentiveTiers) {
+      console.log(`Checking tier: min=${tier.min}, max=${tier.max}, amount=${tier.amount}, each=${tier.each}`);
       if (difference >= tier.min && (tier.max === null || difference <= tier.max)) {
         applicableTier = tier;
+        console.log('Found applicable tier:', tier);
         break;
       }
     }
 
     // If no tier matches, return 0
     if (!applicableTier) {
+      console.log('No applicable tier found');
       return 0;
     }
 
     // Calculate the incentive
     const eligibleUnits = Math.floor(difference / applicableTier.each);
     const totalIncentive = eligibleUnits * applicableTier.amount;
+
+    console.log('Calculation:', {
+      difference,
+      each: applicableTier.each,
+      eligibleUnits,
+      amount: applicableTier.amount,
+      totalIncentive
+    });
 
     return parseFloat(totalIncentive.toFixed(2));
   };
