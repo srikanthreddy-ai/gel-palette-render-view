@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
+import { Plus, Minus } from 'lucide-react';
 
 interface Building {
   _id: string;
@@ -56,7 +56,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
     norms: "",
     startDate: "",
     endDate: "",
-    incentives: [],
+    incentives: [{ min: "", max: "", each: "", amount: "" }],
   });
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,6 +69,16 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
 
   useEffect(() => {
     if (norm) {
+      // Format incentives for editing
+      const formattedIncentives = norm.incentives && norm.incentives.length > 0 
+        ? norm.incentives.map(incentive => ({
+            min: incentive.min?.toString() || "",
+            max: incentive.max?.toString() || "",
+            each: incentive.each?.toString() || "",
+            amount: incentive.amount?.toString() || "",
+          }))
+        : [{ min: "", max: "", each: "", amount: "" }];
+
       setFormData({
         building_id: norm.building_id?._id || "",
         productionNature: norm.productionNature || "",
@@ -78,7 +88,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         norms: norm.norms?.toString() || "",
         startDate: norm.startDate ? new Date(norm.startDate).toISOString().split('T')[0] : "",
         endDate: norm.endDate ? new Date(norm.endDate).toISOString().split('T')[0] : "",
-        incentives: norm.incentives || [],
+        incentives: formattedIncentives,
       });
     } else {
       setFormData({
@@ -90,7 +100,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         norms: "",
         startDate: "",
         endDate: "",
-        incentives: [],
+        incentives: [{ min: "", max: "", each: "", amount: "" }],
       });
     }
   }, [norm]);
@@ -160,6 +170,31 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
     }));
   };
 
+  const handleIncentiveChange = (index: number, field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      incentives: prev.incentives.map((incentive, i) => 
+        i === index ? { ...incentive, [field]: value } : incentive
+      )
+    }));
+  };
+
+  const addIncentive = () => {
+    setFormData(prev => ({
+      ...prev,
+      incentives: [...prev.incentives, { min: "", max: "", each: "", amount: "" }]
+    }));
+  };
+
+  const removeIncentive = (index: number) => {
+    if (formData.incentives.length > 1) {
+      setFormData(prev => ({
+        ...prev,
+        incentives: prev.incentives.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -177,11 +212,19 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         return;
       }
 
-      // Prepare the payload
+      // Prepare the payload with proper incentives formatting
+      const formattedIncentives = formData.incentives.map(incentive => ({
+        min: incentive.min ? parseInt(incentive.min) : null,
+        max: incentive.max ? parseInt(incentive.max) : null,
+        each: incentive.each ? parseInt(incentive.each) : null,
+        amount: incentive.amount ? parseInt(incentive.amount) : null,
+      }));
+
       const payload = {
         ...formData,
         manpower: parseInt(formData.manpower) || 0,
         norms: parseInt(formData.norms) || 0,
+        incentives: formattedIncentives,
       };
 
       const url = norm 
@@ -236,13 +279,20 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
     }
   };
 
+  // Get the selected building name for display
+  const selectedBuilding = buildings.find(building => building._id === formData.building_id);
+  const displayValue = selectedBuilding ? `${selectedBuilding.buildingName} (${selectedBuilding.buildingCode})` : 
+    (norm?.building_id ? `${norm.building_id.buildingName} (${norm.building_id.buildingCode})` : "");
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label htmlFor="building_id">Building</Label>
         <Select value={formData.building_id} onValueChange={handleSelectChange} disabled={isBuildingsLoading}>
           <SelectTrigger>
-            <SelectValue placeholder={isBuildingsLoading ? "Loading buildings..." : "Select a building"} />
+            <SelectValue placeholder={isBuildingsLoading ? "Loading buildings..." : "Select a building"}>
+              {displayValue || (isBuildingsLoading ? "Loading buildings..." : "Select a building")}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {buildings.map((building) => (
@@ -336,6 +386,82 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
             required
           />
         </div>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <Label>Incentives</Label>
+          <Button
+            type="button"
+            size="sm"
+            onClick={addIncentive}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Incentive
+          </Button>
+        </div>
+        
+        {formData.incentives.map((incentive, index) => (
+          <div key={index} className="border rounded-lg p-4 space-y-2 mb-2">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium">Incentive {index + 1}</h4>
+              {formData.incentives.length > 1 && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => removeIncentive(index)}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-4 gap-2">
+              <div>
+                <Label htmlFor={`min-${index}`}>Min</Label>
+                <Input
+                  id={`min-${index}`}
+                  type="number"
+                  value={incentive.min}
+                  onChange={(e) => handleIncentiveChange(index, 'min', e.target.value)}
+                  placeholder="Min value"
+                />
+              </div>
+              <div>
+                <Label htmlFor={`max-${index}`}>Max</Label>
+                <Input
+                  id={`max-${index}`}
+                  type="number"
+                  value={incentive.max}
+                  onChange={(e) => handleIncentiveChange(index, 'max', e.target.value)}
+                  placeholder="Max value"
+                />
+              </div>
+              <div>
+                <Label htmlFor={`each-${index}`}>Each</Label>
+                <Input
+                  id={`each-${index}`}
+                  type="number"
+                  value={incentive.each}
+                  onChange={(e) => handleIncentiveChange(index, 'each', e.target.value)}
+                  placeholder="Each value"
+                />
+              </div>
+              <div>
+                <Label htmlFor={`amount-${index}`}>Amount</Label>
+                <Input
+                  id={`amount-${index}`}
+                  type="number"
+                  value={incentive.amount}
+                  onChange={(e) => handleIncentiveChange(index, 'amount', e.target.value)}
+                  placeholder="Amount"
+                />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="flex justify-end space-x-2 pt-4">
