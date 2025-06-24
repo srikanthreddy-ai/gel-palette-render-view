@@ -73,13 +73,18 @@ const AllowanceForm: React.FC<AllowanceFormProps> = ({ allowance, onSave, onCanc
         amount: parseFloat(formData.amount) || 0,
       };
 
-      const url = 'https://pel-gel-backend.onrender.com/v1/api/createAllowence';
+      const isEditing = !!allowance;
+      const url = isEditing 
+        ? `https://pel-gel-backend.onrender.com/v1/api/updateAllowence/${allowance._id}`
+        : 'https://pel-gel-backend.onrender.com/v1/api/createAllowence';
       
-      console.log('Making POST request to:', url);
+      const method = isEditing ? 'PUT' : 'POST';
+      
+      console.log(`Making ${method} request to:`, url);
       console.log('Payload:', payload);
 
       const response = await fetch(url, {
-        method: 'POST',
+        method,
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -95,7 +100,7 @@ const AllowanceForm: React.FC<AllowanceFormProps> = ({ allowance, onSave, onCanc
         
         toast({
           title: "Success",
-          description: "Allowance created successfully",
+          description: `Allowance ${isEditing ? 'updated' : 'created'} successfully`,
         });
         
         onSave();
@@ -106,7 +111,7 @@ const AllowanceForm: React.FC<AllowanceFormProps> = ({ allowance, onSave, onCanc
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to create allowance",
+          description: `Failed to ${isEditing ? 'update' : 'create'} allowance`,
         });
       }
     } catch (error) {
@@ -167,7 +172,7 @@ const AllowanceForm: React.FC<AllowanceFormProps> = ({ allowance, onSave, onCanc
           Cancel
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Creating...' : 'Create'}
+          {isLoading ? (allowance ? 'Updating...' : 'Creating...') : (allowance ? 'Update' : 'Create')}
         </Button>
       </div>
     </form>
