@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import NormsForm from '@/components/NormsForm';
 
 interface ProductionNature {
   _id: string;
@@ -111,6 +111,11 @@ const NormsManagement = () => {
     fetchNormsData();
   };
 
+  const handleCancel = () => {
+    setIsDialogOpen(false);
+    setEditingNorm(null);
+  };
+
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -193,19 +198,11 @@ const NormsManagement = () => {
               {editingNorm ? 'Edit Production Nature' : 'New Production Nature'}
             </DialogTitle>
           </DialogHeader>
-          <div className="p-4">
-            <p className="text-center text-gray-500">
-              Production Nature form will be implemented here
-            </p>
-            <div className="flex justify-end space-x-2 mt-4">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleNormSaved}>
-                Save
-              </Button>
-            </div>
-          </div>
+          <NormsForm
+            norm={editingNorm}
+            onSave={handleNormSaved}
+            onCancel={handleCancel}
+          />
         </DialogContent>
       </Dialog>
     </div>
