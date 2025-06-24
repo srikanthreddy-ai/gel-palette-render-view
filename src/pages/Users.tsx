@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,6 +55,7 @@ const Users = () => {
   ];
 
   const roles = ['admin', 'manager', 'user', 'hr'];
+  const baseURL = 'https://pel-gel-backend.onrender.com/v1/api';
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -123,7 +123,59 @@ const Users = () => {
     form.setValue('permissions', newPermissions);
   };
 
-  const onSubmitUser = (data: any) => {
+  const createUser = async (userData: any) => {
+    try {
+      const authToken = sessionStorage.getItem('authToken');
+      console.log('Creating user with data:', userData);
+      
+      const response = await fetch(`${baseURL}/createUser`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: userData.username,
+          password: userData.password,
+          email: userData.email,
+          role: userData.role,
+          privileges: userData.permissions
+        }),
+      });
+
+      console.log('Create user response status:', response.status);
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('User created successfully:', result);
+        toast({
+          title: "User created",
+          description: "New user has been created successfully.",
+        });
+        fetchUsers(); // Refresh the user list
+        return true;
+      } else {
+        const errorData = await response.json();
+        console.error('Create user API Error:', response.status, errorData);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: errorData.message || "Failed to create user",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error('Create user error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Unable to connect to the server",
+      });
+      return false;
+    }
+  };
+
+  const onSubmitUser = async (data: any) => {
     if (editingUser) {
       setUsers(prev => prev.map(user => 
         user.id === editingUser.id 
@@ -134,23 +186,17 @@ const Users = () => {
         title: "User updated",
         description: "User has been updated successfully.",
       });
+      setIsUserDialogOpen(false);
+      setEditingUser(null);
+      form.reset();
     } else {
-      const newUser: User = {
-        id: Date.now().toString(),
-        ...data,
-        createdAt: new Date().toISOString().split('T')[0],
-        status: 'active' as const
-      };
-      setUsers(prev => [...prev, newUser]);
-      toast({
-        title: "User created",
-        description: "New user has been created successfully.",
-      });
+      const success = await createUser(data);
+      if (success) {
+        setIsUserDialogOpen(false);
+        setEditingUser(null);
+        form.reset();
+      }
     }
-    
-    setIsUserDialogOpen(false);
-    setEditingUser(null);
-    form.reset();
   };
 
   const handleEditUser = (user: User) => {
