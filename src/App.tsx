@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,7 @@ import StaffManagement from "./pages/StaffManagement";
 import ProductionCategoryManagement from "./pages/ProductionCategoryManagement";
 import NormsManagement from "./pages/NormsManagement";
 import ShiftManagement from "./pages/ShiftManagement";
+import AllowanceManagement from "./pages/AllowanceManagement";
 import DashboardLayout from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
 
@@ -78,6 +80,13 @@ const App = () => (
               <ProtectedRoute>
                 <DashboardLayout>
                   <ShiftManagement />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/master/allowance" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <AllowanceManagement />
                 </DashboardLayout>
               </ProtectedRoute>
             } />
