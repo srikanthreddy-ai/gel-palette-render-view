@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import ShiftForm from '@/components/ShiftForm';
 
 interface Shift {
   _id: string;
@@ -161,25 +161,17 @@ const ShiftManagement = () => {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingShift ? 'Edit Shift' : 'New Shift'}
             </DialogTitle>
           </DialogHeader>
-          <div className="p-4">
-            <p className="text-center text-gray-500">
-              Shift form will be implemented here
-            </p>
-            <div className="flex justify-end space-x-2 mt-4">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleShiftSaved}>
-                Save
-              </Button>
-            </div>
-          </div>
+          <ShiftForm
+            shift={editingShift}
+            onSave={handleShiftSaved}
+            onCancel={() => setIsDialogOpen(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>
