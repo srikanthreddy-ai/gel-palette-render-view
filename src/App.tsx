@@ -11,6 +11,7 @@ import BulkUpload from "./pages/BulkUpload";
 import StaffManagement from "./pages/StaffManagement";
 import ProductionCategoryManagement from "./pages/ProductionCategoryManagement";
 import NormsManagement from "./pages/NormsManagement";
+import ShiftManagement from "./pages/ShiftManagement";
 import DashboardLayout from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
 
@@ -70,6 +71,13 @@ const App = () => (
               <ProtectedRoute>
                 <DashboardLayout>
                   <NormsManagement />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/master/shift" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <ShiftManagement />
                 </DashboardLayout>
               </ProtectedRoute>
             } />
