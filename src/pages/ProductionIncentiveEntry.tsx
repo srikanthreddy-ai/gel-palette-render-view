@@ -275,6 +275,58 @@ const ProductionIncentiveEntry = () => {
     }
   };
 
+  const calculateIncentiveAmount = () => {
+    // If any required values are missing, return 0
+    if (!selectedNature || !originalNorms || !norms || !manpower || !shiftHrs) {
+      return 0;
+    }
+
+    const currentNorms = parseFloat(norms) || 0;
+    const currentManpower = parseInt(manpower) || 1;
+    const currentShiftHrs = parseFloat(shiftHrs) || 1;
+
+    // If values are same as original (no change), incentive is 0
+    if (currentNorms === originalNorms && currentManpower === originalManpower && currentShiftHrs === originalShiftHrs) {
+      return 0;
+    }
+
+    // Find the selected nature data to get incentives
+    const selectedNatureData = natures.find(nature => nature._id === selectedNature);
+    if (!selectedNatureData || !selectedNatureData.incentives) {
+      return 0;
+    }
+
+    // Calculate the difference between updated norms and original norms
+    const difference = currentNorms - originalNorms;
+
+    // If difference is less than or equal to 0, no incentive
+    if (difference <= 0) {
+      return 0;
+    }
+
+    // Find the appropriate incentive tier based on the difference
+    const incentiveTiers = selectedNatureData.incentives;
+    let applicableTier = null;
+
+    for (const tier of incentiveTiers) {
+      if (difference >= tier.min && (tier.max === null || difference <= tier.max)) {
+        applicableTier = tier;
+        break;
+      }
+    }
+
+    // If no tier matches, return 0
+    if (!applicableTier) {
+      return 0;
+    }
+
+    // Calculate the incentive
+    const eligibleUnits = Math.floor(difference / applicableTier.each);
+    const totalIncentive = eligibleUnits * applicableTier.amount;
+
+    return parseFloat(totalIncentive.toFixed(2));
+  };
+
   const handleManpowerChange = (value: string) => {
     setManpower(value);
     
@@ -286,6 +338,9 @@ const ProductionIncentiveEntry = () => {
       const calculatedNorms = perPersonNorms * newManpower;
       setNorms(calculatedNorms.toString());
     }
+
+    // Update incentives for all selected customers
+    updateAllCustomerIncentives();
   };
 
   const handleShiftHrsChange = (value: string) => {
@@ -299,6 +354,28 @@ const ProductionIncentiveEntry = () => {
       const calculatedNorms = perHourNorms * newShiftHrs;
       setNorms(calculatedNorms.toString());
     }
+
+    // Update incentives for all selected customers
+    updateAllCustomerIncentives();
+  };
+
+  const handleNormsChange = (value: string) => {
+    setNorms(value);
+    // Update incentives for all selected customers when norms change manually
+    updateAllCustomerIncentives();
+  };
+
+  const updateAllCustomerIncentives = () => {
+    // Use setTimeout to ensure state updates are processed first
+    setTimeout(() => {
+      const calculatedIncentive = calculateIncentiveAmount();
+      setSelectedCustomers(prev => 
+        prev.map(customer => ({
+          ...customer,
+          incentive: calculatedIncentive
+        }))
+      );
+    }, 0);
   };
 
   const handleCustomerSearchChange = (value: string) => {
@@ -328,11 +405,14 @@ const ProductionIncentiveEntry = () => {
       return;
     }
 
+    // Calculate incentive for the new customer
+    const calculatedIncentive = calculateIncentiveAmount();
+
     const newCustomer: SelectedCustomer = {
       id: employee._id,
       customerName: employee.fullName,
       empCode: employee.empCode,
-      incentive: 0
+      incentive: calculatedIncentive
     };
 
     setSelectedCustomers(prev => [...prev, newCustomer]);
@@ -598,7 +678,7 @@ const ProductionIncentiveEntry = () => {
               <Label>Norms</Label>
               <Input 
                 value={norms} 
-                onChange={(e) => setNorms(e.target.value)}
+                onChange={(e) => handleNormsChange(e.target.value)}
                 type="number"
                 min="0"
               />
@@ -612,6 +692,16 @@ const ProductionIncentiveEntry = () => {
                 min="0"
                 step="0.5"
               />
+            </div>
+          </div>
+
+          {/* Display calculated incentive amount */}
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="text-sm font-medium text-blue-800">
+              Calculated Incentive per Employee: ₹{calculateIncentiveAmount().toFixed(2)}
+            </div>
+            <div className="text-xs text-blue-600 mt-1">
+              Based on current norms: {norms}, original norms: {originalNorms}, difference: {(parseFloat(norms) || 0) - originalNorms}
             </div>
           </div>
 
@@ -669,7 +759,7 @@ const ProductionIncentiveEntry = () => {
                     <TableHead className="w-16">#</TableHead>
                     <TableHead>Customer Name</TableHead>
                     <TableHead>Employee Code</TableHead>
-                    <TableHead>Incentive</TableHead>
+                    <TableHead>Incentive (₹)</TableHead>
                     <TableHead className="w-20">Remove</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -691,7 +781,8 @@ const ProductionIncentiveEntry = () => {
                             type="number"
                             value={customer.incentive}
                             onChange={(e) => updateCustomerIncentive(customer.empCode, Number(e.target.value))}
-                            className="w-20"
+                            className="w-24"
+                            step="0.01"
                           />
                         </TableCell>
                         <TableCell>
