@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,6 +44,19 @@ interface NatureCategory {
   name: string;
   category: string;
   isDeleted: boolean;
+  // Additional properties for nature objects
+  productionType?: string;
+  productionCode?: string;
+  manpower?: number;
+  norms?: number;
+  incentives?: Array<{
+    min: number;
+    max: number | null;
+    amount: number;
+    each: number;
+  }>;
+  startDate?: string;
+  endDate?: string;
 }
 
 interface ProductionNature {
