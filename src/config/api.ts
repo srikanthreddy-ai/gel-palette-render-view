@@ -14,4 +14,8 @@ export const API_ENDPOINTS = {
   UPDATE_ALLOWANCE: (id: string) => `${API_CONFIG.BASE_URL}/updateAllowence/${id}`,
   DOWNLOAD_REPORT: `${API_CONFIG.BASE_URL}/downloadReport`,
   PRODUCTION_DEPT: `${API_CONFIG.BASE_URL}/ProductionDept`,
+  PRODUCTION_SHIFT: `${API_CONFIG.BASE_URL}/ProductionShift`,
+  GET_ALLOWANCES: `${API_CONFIG.BASE_URL}/getAllowences`,
+  EMPLOYEES_LIST: (empCode: string) => `${API_CONFIG.BASE_URL}/employeesList?empCode=${empCode}`,
+  CREATE_EMP_ALLOWANCE: `${API_CONFIG.BASE_URL}/createEmpAllowence`,
 };
