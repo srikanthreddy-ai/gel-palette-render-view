@@ -103,6 +103,7 @@ const ProductionIncentiveEntry = () => {
   const [norms, setNorms] = useState('');
   const [shiftHrs, setShiftHrs] = useState('');
   const [originalNorms, setOriginalNorms] = useState(0); // Store original norms for calculation
+  const [originalManpower, setOriginalManpower] = useState(1); // Store original manpower for calculation
   
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [buildings, setBuildings] = useState<NatureCategory[]>([]);
@@ -251,12 +252,13 @@ const ProductionIncentiveEntry = () => {
     const selectedNatureData = natures.find(nature => nature._id === natureId);
     if (selectedNatureData && selectedNatureData.productionType) {
       setProductionType(selectedNatureData.productionType);
-      const originalManpower = selectedNatureData.manpower || 1;
+      const originalManpowerValue = selectedNatureData.manpower || 1;
       const originalNormsValue = selectedNatureData.norms || 0;
       
-      setManpower(originalManpower.toString());
+      setManpower(originalManpowerValue.toString());
       setNorms(originalNormsValue.toString());
       setOriginalNorms(originalNormsValue);
+      setOriginalManpower(originalManpowerValue);
     }
   };
 
@@ -275,8 +277,10 @@ const ProductionIncentiveEntry = () => {
     
     // Recalculate norms based on new manpower
     const newManpower = parseInt(value) || 1;
-    if (originalNorms > 0) {
-      const calculatedNorms = originalNorms / newManpower;
+    if (originalNorms > 0 && originalManpower > 0) {
+      // Calculate per-person norms from original data, then multiply by new manpower
+      const perPersonNorms = originalNorms / originalManpower;
+      const calculatedNorms = perPersonNorms * newManpower;
       setNorms(calculatedNorms.toString());
     }
   };
