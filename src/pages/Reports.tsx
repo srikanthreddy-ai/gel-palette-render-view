@@ -102,7 +102,7 @@ const Reports = () => {
         const activeBuildings = apiResponse.data
           .filter((building: BuildingData) => !building.isDeleted)
           .map((building: BuildingData) => ({
-            id: building.buildingId,
+            id: building._id, // Use _id instead of buildingId
             name: `${building.buildingName} (${building.buildingCode})`
           }));
         
