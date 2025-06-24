@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,8 +40,7 @@ const Reports = () => {
   const { toast } = useToast();
 
   const reportOptions = [
-    { value: 'allowance', label: 'Allowance Report' },
-    { value: 'incentive', label: 'Incentive Report' },
+    { value: 'allowance-incentive', label: 'Allowance & Incentive Report' },
     { value: 'staff', label: 'Staff Report' },
     { value: 'production', label: 'Production Report' }
   ];
@@ -59,7 +57,7 @@ const Reports = () => {
     { value: 'custom', label: 'Custom Date Range' }
   ];
 
-  const isAllowanceOrIncentive = selectedReport === 'allowance' || selectedReport === 'incentive';
+  const isAllowanceOrIncentive = selectedReport === 'allowance-incentive';
 
   // Fetch buildings when component mounts or when allowance/incentive is selected
   useEffect(() => {
