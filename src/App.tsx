@@ -59,6 +59,13 @@ const App = () => (
                 </DashboardLayout>
               </ProtectedRoute>
             } />
+            <Route path="/master/building" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <ProductionCategoryManagement />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/master/bulk-upload" element={
               <ProtectedRoute>
                 <DashboardLayout>
