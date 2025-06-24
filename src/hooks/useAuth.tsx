@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
@@ -15,12 +14,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Default role permissions
+// Default role permissions - added "users" to admin role
 const defaultRolePermissions = {
-  admin: ['dashboard', 'incentives', 'staff', 'reports', 'master_data', 'settings'],
-  manager: ['dashboard', 'incentives', 'staff', 'reports'],
+  admin: ['dashboard', 'incentives', 'staff', 'reports', 'master_data', 'settings', 'users'],
+  manager: ['dashboard', 'incentives', 'staff', 'reports', 'users'],
   user: ['dashboard', 'incentives'],
-  hr: ['dashboard', 'staff', 'master_data']
+  hr: ['dashboard', 'staff', 'master_data', 'users']
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

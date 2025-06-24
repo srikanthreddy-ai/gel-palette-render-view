@@ -10,10 +10,10 @@ import { useToast } from '@/hooks/use-toast';
 const Settings = () => {
   const { toast } = useToast();
   const [rolePermissions, setRolePermissions] = useState({
-    admin: ['dashboard', 'incentives', 'staff', 'reports', 'master_data', 'settings'],
-    manager: ['dashboard', 'incentives', 'staff', 'reports'],
+    admin: ['dashboard', 'incentives', 'staff', 'reports', 'master_data', 'settings', 'users'],
+    manager: ['dashboard', 'incentives', 'staff', 'reports', 'users'],
     user: ['dashboard', 'incentives'],
-    hr: ['dashboard', 'staff', 'master_data']
+    hr: ['dashboard', 'staff', 'master_data', 'users']
   });
 
   const [workingDays, setWorkingDays] = useState({
@@ -30,6 +30,7 @@ const Settings = () => {
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'incentives', label: 'Incentives' },
     { id: 'staff', label: 'Staff Management' },
+    { id: 'users', label: 'Users' },
     { id: 'reports', label: 'Reports' },
     { id: 'master_data', label: 'Master Data' },
     { id: 'settings', label: 'Settings' }
