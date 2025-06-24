@@ -12,13 +12,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Edit, UserPlus } from 'lucide-react';
 
 interface User {
-  id: string;
+  _id: string;
   username: string;
   email: string;
   role: string;
-  permissions: string[];
-  createdAt: string;
-  status: 'active' | 'inactive';
+  privileges: string[];
+  date: string;
+  isActive: boolean;
+  __v: number;
 }
 
 const Users = () => {
@@ -65,7 +66,7 @@ const Users = () => {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Auth token:', authToken ? 'Present' : 'Missing');
       
-      const url = 'https://pel-gel-backend.onrender.com/v1/api/usersList';
+      const url = `${baseURL}/usersList`;
       console.log('API URL:', url);
       
       const response = await fetch(url, {
@@ -80,7 +81,8 @@ const Users = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Response data:', data);
-        setUsers(data.data || []);
+        // The API returns an array directly, not wrapped in a data property
+        setUsers(Array.isArray(data) ? data : []);
       } else {
         console.error('API Error:', response.status, response.statusText);
         toast({
@@ -178,8 +180,8 @@ const Users = () => {
   const onSubmitUser = async (data: any) => {
     if (editingUser) {
       setUsers(prev => prev.map(user => 
-        user.id === editingUser.id 
-          ? { ...user, ...data, id: editingUser.id, createdAt: editingUser.createdAt }
+        user._id === editingUser._id 
+          ? { ...user, ...data, _id: editingUser._id, date: editingUser.date }
           : user
       ));
       toast({
@@ -206,7 +208,7 @@ const Users = () => {
       email: user.email,
       password: '',
       role: user.role,
-      permissions: user.permissions
+      permissions: user.privileges
     });
     setIsUserDialogOpen(true);
   };
@@ -378,20 +380,20 @@ const Users = () => {
                 </TableRow>
               ) : (
                 users.map((user) => (
-                  <TableRow key={user.id}>
+                  <TableRow key={user._id}>
                     <TableCell>{user.username}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell className="capitalize">{user.role}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${
-                        user.status === 'active' 
+                        user.isActive 
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {user.status}
+                        {user.isActive ? 'active' : 'inactive'}
                       </span>
                     </TableCell>
-                    <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(user.date).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <Button
                         variant="outline"
