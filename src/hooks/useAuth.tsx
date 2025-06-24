@@ -28,9 +28,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [rolePermissions, setRolePermissions] = useState(defaultRolePermissions);
 
   useEffect(() => {
-    // Check if user is logged in
+    // Check if user is logged in via session storage
+    const authToken = sessionStorage.getItem('authToken');
+    const userName = sessionStorage.getItem('userName');
     const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    
+    if (authToken && userName) {
+      // If we have session data, use it
+      const userData = storedUser ? JSON.parse(storedUser) : { username: userName, role: 'user' };
+      setUser(userData);
+    } else if (storedUser) {
+      // Fallback to localStorage for backward compatibility
       setUser(JSON.parse(storedUser));
     }
 
@@ -49,6 +57,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('userName');
   };
 
   const hasAccess = (module: string): boolean => {

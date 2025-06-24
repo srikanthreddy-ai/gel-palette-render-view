@@ -3,22 +3,69 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/components/ui/use-toast';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock authentication - in real app, this would validate against backend
-    if (username && password) {
-      // Store user data in localStorage (in real app, use proper auth)
-      localStorage.setItem('user', JSON.stringify({
-        username: username,
-        role: username === 'admin' ? 'admin' : 'user' // Mock role assignment
-      }));
-      navigate('/dashboard');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('https://pel-gel-backend.onrender.com/v1/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.token) {
+        // Store token and username in session storage
+        sessionStorage.setItem("authToken", data.token);
+        sessionStorage.setItem("userName", username);
+        
+        // Update auth context with user data
+        login({
+          username: username,
+          role: data.role || 'user' // Use role from API response or default to 'user'
+        });
+
+        // Navigate to dashboard
+        navigate('/dashboard');
+        
+        toast({
+          title: "Login Successful",
+          description: `Welcome back, ${username}!`,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: data.message || "Invalid username or password",
+        });
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({
+        variant: "destructive",
+        title: "Login Error",
+        description: "Unable to connect to the server. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -51,6 +98,7 @@ const Login = () => {
               onChange={(e) => setUsername(e.target.value)}
               className="h-12"
               required
+              disabled={isLoading}
             />
             <Input
               type="password"
@@ -59,14 +107,16 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="h-12"
               required
+              disabled={isLoading}
             />
           </div>
           
           <Button
             type="submit"
             className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+            disabled={isLoading}
           >
-            SIGN IN
+            {isLoading ? "Signing In..." : "SIGN IN"}
           </Button>
           
           <div className="text-center">
