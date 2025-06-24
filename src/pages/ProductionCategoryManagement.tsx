@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -19,6 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import BuildingForm from '@/components/BuildingForm';
 
 interface Building {
   _id: string;
@@ -98,6 +98,11 @@ const ProductionCategoryManagement = () => {
     setIsDialogOpen(false);
     setEditingBuilding(null);
     fetchBuildings();
+  };
+
+  const handleCancel = () => {
+    setIsDialogOpen(false);
+    setEditingBuilding(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -182,19 +187,11 @@ const ProductionCategoryManagement = () => {
               {editingBuilding ? 'Edit Building' : 'New Building'}
             </DialogTitle>
           </DialogHeader>
-          <div className="p-4">
-            <p className="text-center text-gray-500">
-              Building form will be implemented here
-            </p>
-            <div className="flex justify-end space-x-2 mt-4">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleBuildingSaved}>
-                Save
-              </Button>
-            </div>
-          </div>
+          <BuildingForm
+            building={editingBuilding}
+            onSave={handleBuildingSaved}
+            onCancel={handleCancel}
+          />
         </DialogContent>
       </Dialog>
     </div>
