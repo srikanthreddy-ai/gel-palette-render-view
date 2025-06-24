@@ -105,7 +105,7 @@ const AppSidebar = () => {
                               <SidebarMenuSubItem key={subItem.title}>
                                 <SidebarMenuSubButton
                                   onClick={() => handleNavigation(subItem.url)}
-                                  className="hover:bg-gray-700"
+                                  className="hover:bg-gray-700 text-white"
                                 >
                                   {subItem.title}
                                 </SidebarMenuSubButton>
