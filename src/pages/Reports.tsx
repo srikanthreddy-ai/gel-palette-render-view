@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Download } from 'lucide-react';
+import { CalendarIcon, Download, Building } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -14,16 +14,18 @@ import { API_ENDPOINTS } from '@/config/api';
 const Reports = () => {
   const [selectedReport, setSelectedReport] = useState('');
   const [reportType, setReportType] = useState('');
+  const [reportPeriod, setReportPeriod] = useState('');
+  const [selectedBuilding, setSelectedBuilding] = useState('');
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
 
   const reportOptions = [
-    { value: 'staff', label: 'Staff Report' },
+    { value: 'allowance', label: 'Allowance Report' },
     { value: 'incentive', label: 'Incentive Report' },
-    { value: 'production', label: 'Production Report' },
-    { value: 'allowance', label: 'Allowance Report' }
+    { value: 'staff', label: 'Staff Report' },
+    { value: 'production', label: 'Production Report' }
   ];
 
   const reportTypeOptions = [
@@ -32,11 +34,36 @@ const Reports = () => {
     { value: 'csv', label: 'CSV' }
   ];
 
+  const reportPeriodOptions = [
+    { value: 'daily', label: 'Daily' },
+    { value: 'monthly', label: 'Monthly' },
+    { value: 'custom', label: 'Custom Date Range' }
+  ];
+
+  const buildingOptions = [
+    { value: 'all', label: 'All Buildings' },
+    { value: 'building_a', label: 'Building A' },
+    { value: 'building_b', label: 'Building B' },
+    { value: 'building_c', label: 'Building C' },
+    { value: 'warehouse', label: 'Warehouse' }
+  ];
+
+  const isAllowanceOrIncentive = selectedReport === 'allowance' || selectedReport === 'incentive';
+
   const handleDownload = async () => {
     if (!selectedReport || !reportType || !startDate || !endDate) {
       toast({
         title: "Missing Information",
         description: "Please select all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (isAllowanceOrIncentive && (!reportPeriod || !selectedBuilding)) {
+      toast({
+        title: "Missing Information",
+        description: "Please select report period and building for allowance/incentive reports",
         variant: "destructive"
       });
       return;
@@ -63,6 +90,12 @@ const Reports = () => {
         endDate: format(endDate, 'yyyy-MM-dd')
       });
 
+      // Add additional parameters for allowance/incentive reports
+      if (isAllowanceOrIncentive) {
+        params.append('period', reportPeriod);
+        params.append('building', selectedBuilding);
+      }
+
       const response = await fetch(`${API_ENDPOINTS.DOWNLOAD_REPORT}?${params.toString()}`, {
         method: 'GET',
         headers: {
@@ -78,7 +111,14 @@ const Reports = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${selectedReport}_report_${format(startDate, 'yyyy-MM-dd')}_to_${format(endDate, 'yyyy-MM-dd')}.${reportType}`;
+      
+      let filename = `${selectedReport}_report_${format(startDate, 'yyyy-MM-dd')}_to_${format(endDate, 'yyyy-MM-dd')}`;
+      if (isAllowanceOrIncentive) {
+        filename += `_${reportPeriod}_${selectedBuilding}`;
+      }
+      filename += `.${reportType}`;
+      
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -104,7 +144,7 @@ const Reports = () => {
     <div className="container mx-auto p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Reports</h1>
-        <p className="text-gray-600">Download reports for different date ranges</p>
+        <p className="text-gray-600">Download reports for different date ranges, periods, and buildings</p>
       </div>
 
       <Card className="max-w-2xl">
@@ -128,6 +168,45 @@ const Reports = () => {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Report Period - Only for Allowance and Incentive reports */}
+          {isAllowanceOrIncentive && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Report Period</label>
+              <Select value={reportPeriod} onValueChange={setReportPeriod}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose report period" />
+                </SelectTrigger>
+                <SelectContent>
+                  {reportPeriodOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Building Selection - Only for Allowance and Incentive reports */}
+          {isAllowanceOrIncentive && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Building</label>
+              <Select value={selectedBuilding} onValueChange={setSelectedBuilding}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose building" />
+                </SelectTrigger>
+                <SelectContent>
+                  {buildingOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      <Building className="mr-2 h-4 w-4 inline" />
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Report Type */}
           <div className="space-y-2">
@@ -207,7 +286,14 @@ const Reports = () => {
           {/* Download Button */}
           <Button 
             onClick={handleDownload} 
-            disabled={!selectedReport || !reportType || !startDate || !endDate || isDownloading}
+            disabled={
+              !selectedReport || 
+              !reportType || 
+              !startDate || 
+              !endDate || 
+              isDownloading ||
+              (isAllowanceOrIncentive && (!reportPeriod || !selectedBuilding))
+            }
             className="w-full"
           >
             <Download className="mr-2 h-4 w-4" />
