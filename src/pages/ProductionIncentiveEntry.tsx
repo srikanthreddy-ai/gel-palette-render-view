@@ -296,11 +296,12 @@ const ProductionIncentiveEntry = () => {
     console.log('Parsed values:', { currentNorms, currentManpower, currentShiftHrs });
     console.log('Original values:', { originalNorms, originalManpower, originalShiftHrs });
 
-    // If values are same as original (no change), incentive is 0
-    if (currentNorms === originalNorms && currentManpower === originalManpower && currentShiftHrs === originalShiftHrs) {
-      console.log('No changes detected, incentive is 0');
-      return 0;
-    }
+    // Calculate expected norms based on current manpower and shift hours
+    const perPersonPerHourNorms = originalNorms / (originalManpower * originalShiftHrs);
+    const expectedNorms = perPersonPerHourNorms * currentManpower * currentShiftHrs;
+    
+    console.log('Expected norms for current setup:', expectedNorms);
+    console.log('Actual norms entered:', currentNorms);
 
     // Find the selected nature data to get incentives
     const selectedNatureData = natures.find(nature => nature._id === selectedNature);
@@ -311,9 +312,9 @@ const ProductionIncentiveEntry = () => {
 
     console.log('Selected nature incentives:', selectedNatureData.incentives);
 
-    // Calculate the difference between updated norms and original norms
-    const difference = currentNorms - originalNorms;
-    console.log('Norms difference:', difference);
+    // Calculate the difference between actual norms and expected norms
+    const difference = currentNorms - expectedNorms;
+    console.log('Norms difference (actual - expected):', difference);
 
     // If difference is less than or equal to 0, no incentive
     if (difference <= 0) {
@@ -347,6 +348,8 @@ const ProductionIncentiveEntry = () => {
 
     console.log('Calculation:', {
       difference,
+      expectedNorms,
+      actualNorms: currentNorms,
       each: applicableTier.each,
       eligibleUnits,
       amount: applicableTier.amount,
@@ -730,7 +733,7 @@ const ProductionIncentiveEntry = () => {
               Calculated Incentive per Employee: ₹{calculateIncentiveAmount().toFixed(2)}
             </div>
             <div className="text-xs text-blue-600 mt-1">
-              Based on current norms: {norms}, original norms: {originalNorms}, difference: {(parseFloat(norms) || 0) - originalNorms}
+              Based on actual norms: {norms} vs expected norms: {originalNorms && originalManpower && originalShiftHrs ? ((originalNorms / (originalManpower * originalShiftHrs)) * (parseInt(manpower) || 1) * (parseFloat(shiftHrs) || 1)).toFixed(2) : 'N/A'}
             </div>
           </div>
 
