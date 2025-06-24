@@ -104,6 +104,7 @@ const ProductionIncentiveEntry = () => {
   const [shiftHrs, setShiftHrs] = useState('');
   const [originalNorms, setOriginalNorms] = useState(0); // Store original norms for calculation
   const [originalManpower, setOriginalManpower] = useState(1); // Store original manpower for calculation
+  const [originalShiftHrs, setOriginalShiftHrs] = useState(1); // Store original shift hours for calculation
   
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [buildings, setBuildings] = useState<NatureCategory[]>([]);
@@ -268,7 +269,9 @@ const ProductionIncentiveEntry = () => {
     // Find the selected shift and auto-populate shift hours
     const selectedShiftData = shifts.find(shift => shift._id === shiftId);
     if (selectedShiftData) {
-      setShiftHrs(selectedShiftData.shiftHrs.toString());
+      const originalShiftHrsValue = selectedShiftData.shiftHrs;
+      setShiftHrs(originalShiftHrsValue.toString());
+      setOriginalShiftHrs(originalShiftHrsValue);
     }
   };
 
@@ -281,6 +284,19 @@ const ProductionIncentiveEntry = () => {
       // Calculate per-person norms from original data, then multiply by new manpower
       const perPersonNorms = originalNorms / originalManpower;
       const calculatedNorms = perPersonNorms * newManpower;
+      setNorms(calculatedNorms.toString());
+    }
+  };
+
+  const handleShiftHrsChange = (value: string) => {
+    setShiftHrs(value);
+    
+    // Recalculate norms based on new shift hours
+    const newShiftHrs = parseFloat(value) || 1;
+    if (originalNorms > 0 && originalShiftHrs > 0) {
+      // Calculate per-hour norms from original data, then multiply by new shift hours
+      const perHourNorms = originalNorms / originalShiftHrs;
+      const calculatedNorms = perHourNorms * newShiftHrs;
       setNorms(calculatedNorms.toString());
     }
   };
@@ -591,7 +607,7 @@ const ProductionIncentiveEntry = () => {
               <Label>Shift Hrs</Label>
               <Input 
                 value={shiftHrs} 
-                onChange={(e) => setShiftHrs(e.target.value)}
+                onChange={(e) => handleShiftHrsChange(e.target.value)}
                 type="number"
                 min="0"
                 step="0.5"
