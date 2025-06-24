@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -79,7 +78,7 @@ interface ProductionNature {
 interface Employee {
   _id: string;
   empCode: string;
-  empName: string;
+  fullName: string;
   department?: string;
   designation?: string;
 }
@@ -284,7 +283,7 @@ const ProductionIncentiveEntry = () => {
 
     const newCustomer: SelectedCustomer = {
       id: employee._id,
-      customerName: employee.empName,
+      customerName: employee.fullName,
       empCode: employee.empCode,
       incentive: 0
     };
@@ -535,7 +534,7 @@ const ProductionIncentiveEntry = () => {
                     onClick={() => addCustomerToTable(employee)}
                   >
                     <div>
-                      <div className="font-medium">{employee.empName}</div>
+                      <div className="font-medium">{employee.fullName}</div>
                       <div className="text-sm text-gray-500">Code: {employee.empCode}</div>
                     </div>
                     <Plus className="h-4 w-4 text-green-600" />
