@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import BulkUpload from "./pages/BulkUpload";
 import StaffManagement from "./pages/StaffManagement";
+import ProductionCategoryManagement from "./pages/ProductionCategoryManagement";
 import DashboardLayout from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
 
@@ -48,6 +49,13 @@ const App = () => (
               <ProtectedRoute>
                 <DashboardLayout>
                   <StaffManagement />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/production-category" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <ProductionCategoryManagement />
                 </DashboardLayout>
               </ProtectedRoute>
             } />
