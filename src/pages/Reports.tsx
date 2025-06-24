@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,18 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { API_ENDPOINTS } from '@/config/api';
+
+interface BuildingData {
+  _id: string;
+  buildingId: string;
+  buildingName: string;
+  buildingCode: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  isDeleted: boolean;
+  __v: number;
+}
 
 interface BuildingOption {
   id: string;
@@ -81,16 +94,28 @@ const Reports = () => {
         throw new Error('Failed to fetch buildings');
       }
 
-      const data = await response.json();
-      console.log('Buildings data:', data);
+      const apiResponse = await response.json();
+      console.log('Buildings data:', apiResponse);
       
-      // Add "All Buildings" option at the beginning
-      const buildingsWithAll = [
-        { id: 'all', name: 'All Buildings' },
-        ...(Array.isArray(data) ? data : [])
-      ];
-      
-      setBuildingOptions(buildingsWithAll);
+      if (apiResponse.status && Array.isArray(apiResponse.data)) {
+        // Filter out deleted buildings and map to our format
+        const activeBuildings = apiResponse.data
+          .filter((building: BuildingData) => !building.isDeleted)
+          .map((building: BuildingData) => ({
+            id: building.buildingId,
+            name: `${building.buildingName} (${building.buildingCode})`
+          }));
+        
+        // Add "All Buildings" option at the beginning
+        const buildingsWithAll = [
+          { id: 'all', name: 'All Buildings' },
+          ...activeBuildings
+        ];
+        
+        setBuildingOptions(buildingsWithAll);
+      } else {
+        throw new Error('Invalid API response format');
+      }
     } catch (error) {
       console.error('Error fetching buildings:', error);
       toast({
