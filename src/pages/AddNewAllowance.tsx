@@ -51,12 +51,13 @@ interface Allowance {
 interface Employee {
   _id: string;
   empCode: string;
-  empName: string;
+  fullName: string;
   allowance: number;
 }
 
 interface SelectedEmployee extends Employee {
   id: string;
+  allowanceAmount: number;
 }
 
 const AddNewAllowance = () => {
@@ -200,6 +201,15 @@ const AddNewAllowance = () => {
   };
 
   const addEmployeeToTable = (employee: Employee) => {
+    if (!selectedAllowance) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please select an allowance first",
+      });
+      return;
+    }
+
     const isAlreadyAdded = selectedEmployees.some(emp => emp._id === employee._id);
     if (isAlreadyAdded) {
       toast({
@@ -210,9 +220,14 @@ const AddNewAllowance = () => {
       return;
     }
 
+    // Get the amount from the selected allowance
+    const selectedAllowanceData = allowances.find(allowance => allowance._id === selectedAllowance);
+    const allowanceAmount = selectedAllowanceData?.amount || 0;
+
     const newEmployee: SelectedEmployee = {
       ...employee,
       id: `${employee._id}-${Date.now()}`, // Unique identifier for table row
+      allowanceAmount: allowanceAmount,
     };
 
     setSelectedEmployees(prev => [...prev, newEmployee]);
@@ -263,7 +278,7 @@ const AddNewAllowance = () => {
           allowance_id: selectedAllowance,
           employee_id: employee._id,
           empCode: employee.empCode,
-          amount: employee.allowance,
+          amount: employee.allowanceAmount,
         };
 
         console.log('Creating allowance for employee:', payload);
@@ -440,7 +455,7 @@ const AddNewAllowance = () => {
                   >
                     <div>
                       <span className="font-medium">{employee.empCode}</span>
-                      <span className="text-gray-500 ml-2">{employee.empName}</span>
+                      <span className="text-gray-500 ml-2">{employee.fullName}</span>
                     </div>
                     <Button
                       size="sm"
@@ -473,8 +488,8 @@ const AddNewAllowance = () => {
                     {selectedEmployees.map((employee) => (
                       <TableRow key={employee.id}>
                         <TableCell>{employee.empCode}</TableCell>
-                        <TableCell>{employee.empName}</TableCell>
-                        <TableCell>{employee.allowance}</TableCell>
+                        <TableCell>{employee.fullName}</TableCell>
+                        <TableCell>{employee.allowanceAmount}</TableCell>
                         <TableCell>
                           <Button
                             size="sm"
