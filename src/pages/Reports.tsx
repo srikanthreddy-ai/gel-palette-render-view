@@ -161,12 +161,23 @@ const Reports = () => {
         return;
       }
 
+      // Determine the report value to send to API
+      let reportValue = selectedReport;
+      if (selectedReport === 'allowance-incentive') {
+        reportValue = 'allowence'; // Note: using 'allowence' as specified, also sending 'incentive'
+      }
+
       const params = new URLSearchParams({
-        report: selectedReport,
+        report: reportValue,
         type: reportType,
         startDate: format(startDate, 'yyyy-MM-dd'),
         endDate: format(endDate, 'yyyy-MM-dd')
       });
+
+      // Add incentive as additional report parameter for allowance-incentive
+      if (selectedReport === 'allowance-incentive') {
+        params.append('report', 'incentive');
+      }
 
       // Add additional parameters for allowance/incentive reports
       if (isAllowanceOrIncentive) {
