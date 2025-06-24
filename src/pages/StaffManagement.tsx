@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/dialog';
 import { Search, Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import AddEditEmployeeForm from '@/components/AddEditEmployeeForm';
 
 interface Employee {
   id: string;
@@ -28,7 +27,6 @@ interface Employee {
   designation: string;
   department: string;
   email?: string;
-  // Add other fields as needed
 }
 
 const StaffManagement = () => {
@@ -41,11 +39,17 @@ const StaffManagement = () => {
 
   const fetchEmployees = async (empCode?: string) => {
     setIsLoading(true);
+    console.log('Fetching employees...', empCode ? `with empCode: ${empCode}` : 'all employees');
+    
     try {
       const authToken = sessionStorage.getItem('authToken');
+      console.log('Auth token:', authToken ? 'Present' : 'Missing');
+      
       const url = empCode 
         ? `https://pel-gel-backend.onrender.com/v1/api/employeesList?empCode=${empCode}`
         : 'https://pel-gel-backend.onrender.com/v1/api/employeesList';
+      
+      console.log('API URL:', url);
       
       const response = await fetch(url, {
         headers: {
@@ -54,10 +58,14 @@ const StaffManagement = () => {
         },
       });
 
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Response data:', data);
         setEmployees(data.employees || data || []);
       } else {
+        console.error('API Error:', response.status, response.statusText);
         toast({
           variant: "destructive",
           title: "Error",
@@ -97,7 +105,7 @@ const StaffManagement = () => {
   const handleEmployeeSaved = () => {
     setIsDialogOpen(false);
     setEditingEmployee(null);
-    fetchEmployees(); // Refresh the list
+    fetchEmployees();
   };
 
   return (
@@ -185,11 +193,19 @@ const StaffManagement = () => {
               {editingEmployee ? 'Edit Employee' : 'New Employee'}
             </DialogTitle>
           </DialogHeader>
-          <AddEditEmployeeForm
-            employee={editingEmployee}
-            onSave={handleEmployeeSaved}
-            onCancel={() => setIsDialogOpen(false)}
-          />
+          <div className="p-4">
+            <p className="text-center text-gray-500">
+              Employee form will be implemented here
+            </p>
+            <div className="flex justify-end space-x-2 mt-4">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleEmployeeSaved}>
+                Save
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
