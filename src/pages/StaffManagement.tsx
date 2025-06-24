@@ -21,9 +21,9 @@ import { Search, Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface Employee {
-  id: string;
-  employeeCode: string;
-  name: string;
+  _id: string;
+  empCode: string;
+  fullName: string;
   designation: string;
   department: string;
   email?: string;
@@ -63,7 +63,8 @@ const StaffManagement = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Response data:', data);
-        setEmployees(data.employees || data || []);
+        // Fix: API returns data in 'data' field, not 'employees'
+        setEmployees(data.data || []);
       } else {
         console.error('API Error:', response.status, response.statusText);
         toast({
@@ -161,10 +162,10 @@ const StaffManagement = () => {
                   </TableRow>
                 ) : (
                   employees.map((employee, index) => (
-                    <TableRow key={employee.id || index}>
+                    <TableRow key={employee._id || index}>
                       <TableCell>{index + 1}</TableCell>
-                      <TableCell>{employee.employeeCode}</TableCell>
-                      <TableCell>{employee.name}</TableCell>
+                      <TableCell>{employee.empCode}</TableCell>
+                      <TableCell>{employee.fullName}</TableCell>
                       <TableCell>{employee.designation}</TableCell>
                       <TableCell>{employee.department}</TableCell>
                       <TableCell>
