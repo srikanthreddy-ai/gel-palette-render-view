@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +11,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   Table,
   TableBody,
   TableCell,
@@ -20,14 +24,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon, Plus, Search, X } from 'lucide-react';
+import { CalendarIcon, Plus, Search, X, ChevronDown } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { API_ENDPOINTS } from '@/config/api';
 
@@ -244,14 +244,23 @@ const AddNewAllowance = () => {
     setSelectedEmployees(prev => prev.filter(emp => emp.id !== id));
   };
 
-  const handleShiftChange = (shiftId: string) => {
+  const handleShiftChange = (shiftId: string, checked: boolean) => {
     setSelectedShifts(prev => {
-      if (prev.includes(shiftId)) {
-        return prev.filter(id => id !== shiftId);
-      } else {
+      if (checked) {
         return [...prev, shiftId];
+      } else {
+        return prev.filter(id => id !== shiftId);
       }
     });
+  };
+
+  const getSelectedShiftNames = () => {
+    if (selectedShifts.length === 0) return "Select shifts...";
+    if (selectedShifts.length === 1) {
+      const shift = shifts.find(s => s._id === selectedShifts[0]);
+      return shift?.shiftName || "Select shifts...";
+    }
+    return `${selectedShifts.length} shifts selected`;
   };
 
   const handleSubmit = async () => {
@@ -371,39 +380,47 @@ const AddNewAllowance = () => {
               </Popover>
             </div>
 
-            {/* Production Shifts */}
+            {/* Production Shifts - Multi-select */}
             <div>
               <Label>Production Shifts</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder={selectedShifts.length > 0 ? `${selectedShifts.length} shift(s) selected` : "Select..."} />
-                </SelectTrigger>
-                <SelectContent>
-                  {isLoadingShifts ? (
-                    <SelectItem value="loading" disabled>Loading shifts...</SelectItem>
-                  ) : shifts.length === 0 ? (
-                    <SelectItem value="no-data" disabled>No shifts available</SelectItem>
-                  ) : (
-                    shifts.map((shift) => (
-                      <SelectItem 
-                        key={shift._id} 
-                        value={shift._id}
-                        onSelect={() => handleShiftChange(shift._id)}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedShifts.includes(shift._id)}
-                            onChange={() => handleShiftChange(shift._id)}
-                            className="rounded"
-                          />
-                          <span>{shift.shiftName}</span>
-                        </div>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between text-left font-normal"
+                  >
+                    <span className="truncate">{getSelectedShiftNames()}</span>
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <div className="max-h-60 overflow-y-auto">
+                    {isLoadingShifts ? (
+                      <div className="p-4 text-sm text-muted-foreground">Loading shifts...</div>
+                    ) : shifts.length === 0 ? (
+                      <div className="p-4 text-sm text-muted-foreground">No shifts available</div>
+                    ) : (
+                      <div className="p-2">
+                        {shifts.map((shift) => (
+                          <div key={shift._id} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm">
+                            <Checkbox
+                              id={shift._id}
+                              checked={selectedShifts.includes(shift._id)}
+                              onCheckedChange={(checked) => handleShiftChange(shift._id, checked as boolean)}
+                            />
+                            <label
+                              htmlFor={shift._id}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1"
+                            >
+                              {shift.shiftName}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* Select Allowance */}
