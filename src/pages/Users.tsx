@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { Edit, UserPlus } from 'lucide-react';
+import { API_ENDPOINTS } from '@/config/api';
 
 interface User {
   _id: string;
@@ -56,7 +58,6 @@ const Users = () => {
   ];
 
   const roles = ['admin', 'manager', 'user', 'hr'];
-  const baseURL = 'http://localhost:5000/v1/api';
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -66,10 +67,9 @@ const Users = () => {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Auth token:', authToken ? 'Present' : 'Missing');
       
-      const url = `${baseURL}/usersList`;
-      console.log('API URL:', url);
+      console.log('API URL:', API_ENDPOINTS.USERS_LIST);
       
-      const response = await fetch(url, {
+      const response = await fetch(API_ENDPOINTS.USERS_LIST, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -81,7 +81,6 @@ const Users = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Response data:', data);
-        // The API returns an array directly, not wrapped in a data property
         setUsers(Array.isArray(data) ? data : []);
       } else {
         console.error('API Error:', response.status, response.statusText);
@@ -130,7 +129,7 @@ const Users = () => {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Creating user with data:', userData);
       
-      const response = await fetch(`${baseURL}/createUser`, {
+      const response = await fetch(API_ENDPOINTS.CREATE_USER, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -154,7 +153,7 @@ const Users = () => {
           title: "User created",
           description: "New user has been created successfully.",
         });
-        fetchUsers(); // Refresh the user list
+        fetchUsers();
         return true;
       } else {
         const errorData = await response.json();
@@ -177,20 +176,72 @@ const Users = () => {
     }
   };
 
+  const updateUser = async (userData: any, userId: string) => {
+    try {
+      const authToken = sessionStorage.getItem('authToken');
+      console.log('Updating user with data:', userData, 'ID:', userId);
+      
+      const updatePayload: any = {
+        username: userData.username,
+        email: userData.email,
+        role: userData.role,
+        privileges: userData.permissions
+      };
+
+      // Only include password if it's provided
+      if (userData.password && userData.password.trim() !== '') {
+        updatePayload.password = userData.password;
+      }
+      
+      const response = await fetch(API_ENDPOINTS.UPDATE_USER(userId), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatePayload),
+      });
+
+      console.log('Update user response status:', response.status);
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('User updated successfully:', result);
+        toast({
+          title: "User updated",
+          description: "User has been updated successfully.",
+        });
+        fetchUsers();
+        return true;
+      } else {
+        const errorData = await response.json();
+        console.error('Update user API Error:', response.status, errorData);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: errorData.message || "Failed to update user",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error('Update user error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Unable to connect to the server",
+      });
+      return false;
+    }
+  };
+
   const onSubmitUser = async (data: any) => {
     if (editingUser) {
-      setUsers(prev => prev.map(user => 
-        user._id === editingUser._id 
-          ? { ...user, ...data, _id: editingUser._id, date: editingUser.date }
-          : user
-      ));
-      toast({
-        title: "User updated",
-        description: "User has been updated successfully.",
-      });
-      setIsUserDialogOpen(false);
-      setEditingUser(null);
-      form.reset();
+      const success = await updateUser(data, editingUser._id);
+      if (success) {
+        setIsUserDialogOpen(false);
+        setEditingUser(null);
+        form.reset();
+      }
     } else {
       const success = await createUser(data);
       if (success) {

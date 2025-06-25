@@ -1,4 +1,3 @@
-
 // API Configuration
 export const API_CONFIG = {
   BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://pel-gel-backend.onrender.com/v1/api',
@@ -18,4 +17,7 @@ export const API_ENDPOINTS = {
   GET_ALLOWANCES: `${API_CONFIG.BASE_URL}/getAllowences`,
   EMPLOYEES_LIST: (empCode: string) => `${API_CONFIG.BASE_URL}/employeesList?empCode=${empCode}`,
   CREATE_EMP_ALLOWANCE: `${API_CONFIG.BASE_URL}/createEmpAllowence`,
+  USERS_LIST: `${API_CONFIG.BASE_URL}/usersList`,
+  CREATE_USER: `${API_CONFIG.BASE_URL}/createUser`,
+  UPDATE_USER: (id: string) => `${API_CONFIG.BASE_URL}/userUpdate/${id}`,
 };
