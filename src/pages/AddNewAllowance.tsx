@@ -55,6 +55,12 @@ interface Employee {
   allowance: number;
 }
 
+interface Building {
+  _id: string;
+  productionDeptName: string;
+  isDeleted: boolean;
+}
+
 interface SelectedEmployee extends Employee {
   id: string;
   allowanceAmount: number;
@@ -64,27 +70,30 @@ const AddNewAllowance = () => {
   const [productionDate, setProductionDate] = useState<Date>(new Date());
   const [selectedShifts, setSelectedShifts] = useState<string[]>([]);
   const [selectedAllowance, setSelectedAllowance] = useState<string>('');
+  const [selectedBuilding, setSelectedBuilding] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmployees, setSelectedEmployees] = useState<SelectedEmployee[]>([]);
   
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [allowances, setAllowances] = useState<Allowance[]>([]);
+  const [buildings, setBuildings] = useState<Building[]>([]);
   const [searchResults, setSearchResults] = useState<Employee[]>([]);
   
   const [isLoadingShifts, setIsLoadingShifts] = useState(false);
   const [isLoadingAllowances, setIsLoadingAllowances] = useState(false);
+  const [isLoadingBuildings, setIsLoadingBuildings] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { toast } = useToast();
 
-  // Load shifts and allowances on component mount
+  // Load initial data on component mount
   useEffect(() => {
     loadInitialData();
   }, []);
 
   const loadInitialData = async () => {
-    await Promise.all([fetchShifts(), fetchAllowances()]);
+    await Promise.all([fetchShifts(), fetchAllowances(), fetchBuildings()]);
   };
 
   const fetchShifts = async () => {
@@ -156,6 +165,42 @@ const AddNewAllowance = () => {
       });
     } finally {
       setIsLoadingAllowances(false);
+    }
+  };
+
+  const fetchBuildings = async () => {
+    setIsLoadingBuildings(true);
+    console.log('Fetching buildings...');
+    
+    try {
+      const authToken = sessionStorage.getItem('authToken');
+      const response = await fetch(API_ENDPOINTS.PRODUCTION_DEPT, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Buildings data:', data);
+        setBuildings(data.data?.filter((building: Building) => !building.isDeleted) || []);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch buildings",
+        });
+      }
+    } catch (error) {
+      console.error('Fetch buildings error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Unable to connect to the server",
+      });
+    } finally {
+      setIsLoadingBuildings(false);
     }
   };
 
@@ -264,7 +309,7 @@ const AddNewAllowance = () => {
   };
 
   const handleSubmit = async () => {
-    if (!productionDate || selectedShifts.length === 0 || !selectedAllowance || selectedEmployees.length === 0) {
+    if (!productionDate || selectedShifts.length === 0 || !selectedAllowance || !selectedBuilding || selectedEmployees.length === 0) {
       toast({
         variant: "destructive",
         title: "Validation Error",
@@ -285,6 +330,7 @@ const AddNewAllowance = () => {
           productionDate: format(productionDate, 'yyyy-MM-dd'),
           shifts: selectedShifts,
           allowance_id: selectedAllowance,
+          building_id: selectedBuilding,
           employee_id: employee._id,
           empCode: employee.empCode,
           amount: employee.allowanceAmount,
@@ -319,6 +365,7 @@ const AddNewAllowance = () => {
       setSelectedEmployees([]);
       setSelectedShifts([]);
       setSelectedAllowance('');
+      setSelectedBuilding('');
       setSearchQuery('');
       setSearchResults([]);
 
@@ -351,7 +398,7 @@ const AddNewAllowance = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Form Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Production Date */}
             <div>
               <Label>Production Date</Label>
@@ -378,6 +425,29 @@ const AddNewAllowance = () => {
                   />
                 </PopoverContent>
               </Popover>
+            </div>
+
+            {/* Select Building */}
+            <div>
+              <Label>Select Building</Label>
+              <Select value={selectedBuilding} onValueChange={setSelectedBuilding}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Building" />
+                </SelectTrigger>
+                <SelectContent>
+                  {isLoadingBuildings ? (
+                    <SelectItem value="loading" disabled>Loading buildings...</SelectItem>
+                  ) : buildings.length === 0 ? (
+                    <SelectItem value="no-data" disabled>No buildings available</SelectItem>
+                  ) : (
+                    buildings.map((building) => (
+                      <SelectItem key={building._id} value={building._id}>
+                        {building.productionDeptName}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Production Shifts - Multi-select */}
