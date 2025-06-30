@@ -23,7 +23,8 @@ const Dashboard = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Employee count response:', data);
-        setTotalEmployees(data.totalItems || 0);
+        console.log('Total items from API:', data.totalItems);
+        setTotalEmployees(data.totalItems || data.data?.length || 0);
       } else {
         console.error('Failed to fetch employee count:', response.status);
         toast({
