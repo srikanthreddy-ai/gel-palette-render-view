@@ -2,13 +2,6 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { API_ENDPOINTS } from '@/config/api';
 
@@ -142,15 +135,14 @@ const AllowanceForm: React.FC<AllowanceFormProps> = ({ allowance, onSave, onCanc
 
       <div>
         <Label htmlFor="shift">Shift</Label>
-        <Select value={formData.shift} onValueChange={handleShiftChange} required>
-          <SelectTrigger>
-            <SelectValue placeholder="Select shift type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Day">Day</SelectItem>
-            <SelectItem value="Night">Night</SelectItem>
-          </SelectContent>
-        </Select>
+        <Input
+          id="shift"
+          name="shift"
+          value={formData.shift}
+          onChange={handleInputChange}
+          required
+          placeholder="Enter shift type"
+        />
       </div>
 
       <div>
