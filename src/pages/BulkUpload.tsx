@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -152,9 +153,30 @@ const BulkUpload = () => {
     });
   };
 
+  const downloadAllowanceTemplate = () => {
+    const csvContent = 'allowence,shift,amount\nOvertime Allowance,Day Shift,500\nNight Allowance,Night Shift,750\nWeekend Allowance,Weekend Shift,600\nHoliday Allowance,Holiday Shift,1000';
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'allowance_master_template.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Template downloaded",
+      description: "Allowance master template has been downloaded successfully."
+    });
+  };
+
   const downloadTemplate = (type: string) => {
     if (type === 'Building Master') {
       downloadBuildingTemplate();
+    } else if (type === 'Allowance Master') {
+      downloadAllowanceTemplate();
     } else {
       toast({
         title: "Template download",
@@ -255,6 +277,7 @@ const BulkUpload = () => {
             <li>Building Master uploads use the masterDataUpload API with type parameter</li>
             <li>Allowance Master uploads use the AllowenceDataUpload API</li>
             <li><strong>Building Master Template includes:</strong> buildingId, buildingName, buildingCode, description, startDate, endDate</li>
+            <li><strong>Allowance Master Template includes:</strong> allowence, shift, amount</li>
           </ul>
         </CardContent>
       </Card>
