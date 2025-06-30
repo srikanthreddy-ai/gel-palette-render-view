@@ -57,8 +57,14 @@ interface Employee {
 
 interface Building {
   _id: string;
-  productionDeptName: string;
+  buildingId: string;
+  buildingName: string;
+  buildingCode: string;
+  description: string;
+  startDate: string;
+  endDate: string;
   isDeleted: boolean;
+  __v?: number;
 }
 
 interface SelectedEmployee extends Employee {
@@ -265,13 +271,12 @@ const AddNewAllowance = () => {
       return;
     }
 
-    // Get the amount from the selected allowance
     const selectedAllowanceData = allowances.find(allowance => allowance._id === selectedAllowance);
     const allowanceAmount = selectedAllowanceData?.amount || 0;
 
     const newEmployee: SelectedEmployee = {
       ...employee,
-      id: `${employee._id}-${Date.now()}`, // Unique identifier for table row
+      id: `${employee._id}-${Date.now()}`,
       allowanceAmount: allowanceAmount,
     };
 
@@ -324,7 +329,6 @@ const AddNewAllowance = () => {
     try {
       const authToken = sessionStorage.getItem('authToken');
       
-      // Create allowance records for each selected employee
       const promises = selectedEmployees.map(async (employee) => {
         const payload = {
           productionDate: format(productionDate, 'yyyy-MM-dd'),
@@ -361,7 +365,6 @@ const AddNewAllowance = () => {
         description: "All allowance records created successfully",
       });
 
-      // Reset form
       setSelectedEmployees([]);
       setSelectedShifts([]);
       setSelectedAllowance('');
@@ -442,7 +445,7 @@ const AddNewAllowance = () => {
                   ) : (
                     buildings.map((building) => (
                       <SelectItem key={building._id} value={building._id}>
-                        {building.productionDeptName}
+                        {building.buildingName}
                       </SelectItem>
                     ))
                   )}
