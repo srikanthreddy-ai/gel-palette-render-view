@@ -28,8 +28,8 @@ const Users = () => {
   const [rolePermissions, setRolePermissions] = useState({
     admin: ['dashboard', 'incentives', 'staff', 'reports', 'master_data', 'settings', 'users'],
     manager: ['dashboard', 'incentives', 'staff', 'reports', 'users'],
-    user: ['dashboard', 'incentives'],
-    hr: ['dashboard', 'staff', 'master_data', 'users']
+    hr: ['dashboard', 'staff', 'master_data', 'users'],
+    supervisor: ['dashboard', 'incentives', 'staff']
   });
 
   const [users, setUsers] = useState<User[]>([]);
@@ -57,7 +57,7 @@ const Users = () => {
     { id: 'settings', label: 'Settings' }
   ];
 
-  const roles = ['admin', 'manager', 'user', 'hr'];
+  const roles = ['admin', 'manager', 'hr', 'supervisor'];
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -356,11 +356,10 @@ const Users = () => {
                               <SelectValue placeholder="Select a role" />
                             </SelectTrigger>
                             <SelectContent>
-                              {roles.map((role) => (
-                                <SelectItem key={role} value={role}>
-                                  {role.charAt(0).toUpperCase() + role.slice(1)}
-                                </SelectItem>
-                              ))}
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="manager">Manager</SelectItem>
+                              <SelectItem value="hr">HR</SelectItem>
+                              <SelectItem value="supervisor">Supervisor</SelectItem>
                             </SelectContent>
                           </Select>
                         </FormControl>
