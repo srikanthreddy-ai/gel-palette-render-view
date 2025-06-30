@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,10 +37,16 @@ const Login = () => {
         sessionStorage.setItem("authToken", data.token);
         sessionStorage.setItem("userName", username);
         
-        // Update auth context with user data
+        // Store user privileges if available
+        if (data.privileges) {
+          sessionStorage.setItem("userPrivileges", JSON.stringify(data.privileges));
+        }
+        
+        // Update auth context with user data including privileges
         login({
           username: username,
-          role: data.role || 'user' // Use role from API response or default to 'user'
+          role: data.role || 'user',
+          privileges: data.privileges || []
         });
 
         // Navigate to dashboard
