@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
@@ -13,7 +12,7 @@ const Dashboard = () => {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Fetching employee count...');
       
-      const response = await fetch('https://pel-gel-backend.onrender.com/v1/api/employeesQuery', {
+      const response = await fetch('https://pel-gel-backend.onrender.com/v1/api/employeesList', {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -24,7 +23,7 @@ const Dashboard = () => {
         const data = await response.json();
         console.log('Employee count response:', data);
         console.log('Total items from API:', data.totalItems);
-        setTotalEmployees(data.totalItems || data.data?.length || 0);
+        setTotalEmployees(data.totalItems || 0);
       } else {
         console.error('Failed to fetch employee count:', response.status);
         toast({
