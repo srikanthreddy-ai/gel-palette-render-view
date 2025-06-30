@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Upload } from 'lucide-react';
+import { Upload, Download } from 'lucide-react';
 import { API_ENDPOINTS } from '@/config/api';
 
 const BulkUpload = () => {
@@ -134,11 +133,34 @@ const BulkUpload = () => {
     }
   };
 
-  const downloadTemplate = (type: string) => {
+  const downloadBuildingTemplate = () => {
+    const csvContent = 'buildingId,buildingName,buildingCode,description,startDate,endDate\nB001,Sample Building,SB01,Sample building description,2024-01-01,2024-12-31\nB002,Test Building,TB02,Test building description,2024-01-01,2024-12-31';
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'building_master_template.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
     toast({
-      title: "Template download",
-      description: `Downloading template for ${type} master...`
+      title: "Template downloaded",
+      description: "Building master template has been downloaded successfully."
     });
+  };
+
+  const downloadTemplate = (type: string) => {
+    if (type === 'Building Master') {
+      downloadBuildingTemplate();
+    } else {
+      toast({
+        title: "Template download",
+        description: `Downloading template for ${type}...`
+      });
+    }
   };
 
   return (
@@ -210,6 +232,7 @@ const BulkUpload = () => {
                 onClick={() => downloadTemplate(type.label)}
                 disabled={isUploading}
               >
+                <Download className="mr-2 h-4 w-4" />
                 Download {type.label} Template
               </Button>
             ))}
@@ -231,6 +254,7 @@ const BulkUpload = () => {
             <li>Employee Master uploads use the dedicated employeeUpload API</li>
             <li>Building Master uploads use the masterDataUpload API with type parameter</li>
             <li>Allowance Master uploads use the AllowenceDataUpload API</li>
+            <li><strong>Building Master Template includes:</strong> buildingId, buildingName, buildingCode, description, startDate, endDate</li>
           </ul>
         </CardContent>
       </Card>
