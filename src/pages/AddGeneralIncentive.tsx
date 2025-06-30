@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,7 +37,8 @@ const AddGeneralIncentive = () => {
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [isLoadingBuildings, setIsLoadingBuildings] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [productionDate, setProductionDate] = useState('');
+  const [productionFromDate, setProductionFromDate] = useState('');
+  const [productionToDate, setProductionToDate] = useState('');
   
   const { toast } = useToast();
 
@@ -147,11 +147,20 @@ const AddGeneralIncentive = () => {
       return;
     }
 
-    if (!productionDate) {
+    if (!productionFromDate) {
       toast({
         variant: "destructive",
         title: "Validation Error",
-        description: "Please select a production date",
+        description: "Please select a production from date",
+      });
+      return;
+    }
+
+    if (!productionToDate) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Please select a production to date",
       });
       return;
     }
@@ -180,7 +189,8 @@ const AddGeneralIncentive = () => {
       const incentiveData = selectedBuildings.map(buildingId => ({
         building_id: buildingId,
         amount: buildingAmounts[buildingId],
-        production_date: productionDate,
+        production_from_date: productionFromDate,
+        production_to_date: productionToDate,
         type: 'general_incentive'
       }));
 
@@ -205,7 +215,8 @@ const AddGeneralIncentive = () => {
         // Reset form
         setSelectedBuildings([]);
         setBuildingAmounts({});
-        setProductionDate('');
+        setProductionFromDate('');
+        setProductionToDate('');
       } else {
         throw new Error('Failed to create general incentive records');
       }
@@ -235,16 +246,28 @@ const AddGeneralIncentive = () => {
           <CardTitle>Add General Incentive</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Production Date */}
-          <div>
-            <Label htmlFor="productionDate">Production Date</Label>
-            <Input
-              id="productionDate"
-              type="date"
-              value={productionDate}
-              onChange={(e) => setProductionDate(e.target.value)}
-              className="mt-2"
-            />
+          {/* Production Date Range */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="productionFromDate">Production From Date</Label>
+              <Input
+                id="productionFromDate"
+                type="date"
+                value={productionFromDate}
+                onChange={(e) => setProductionFromDate(e.target.value)}
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <Label htmlFor="productionToDate">Production To Date</Label>
+              <Input
+                id="productionToDate"
+                type="date"
+                value={productionToDate}
+                onChange={(e) => setProductionToDate(e.target.value)}
+                className="mt-2"
+              />
+            </div>
           </div>
 
           {/* Building Selection */}
@@ -337,7 +360,7 @@ const AddGeneralIncentive = () => {
           <div className="flex justify-end">
             <Button 
               onClick={handleSubmit} 
-              disabled={isSubmitting || selectedBuildings.length === 0 || !productionDate}
+              disabled={isSubmitting || selectedBuildings.length === 0 || !productionFromDate || !productionToDate}
               className="bg-blue-600 hover:bg-blue-700"
             >
               {isSubmitting ? 'Saving...' : 'Save General Incentive'}
