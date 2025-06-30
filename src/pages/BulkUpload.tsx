@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -172,11 +171,32 @@ const BulkUpload = () => {
     });
   };
 
+  const downloadEmployeeTemplate = () => {
+    const csvContent = 'title,firstName,lastName,fullName,email,designation,department,role,cader,empCode,pfNo,basic,fda,newVda,splPay,hra,ca,sa,ea,serAllow,linkMaintQcStoresAllow,seniorityAllow,stdGrossTotal,totalGrossWithCantAb,uanNumber,soWo,dateOfBirth,joiningDate,lastDate,dateOfProbation,accountNumber,ifsc,bankName,branchName,accountHolderName\nMr,John,Doe,John Doe,john.doe@company.com,Software Engineer,IT,Developer,Grade A,EMP001,PF12345,50000,5000,3000,2000,8000,1500,1000,2500,3000,1200,800,75000,78000,UAN123456789,SO001,1990-01-15,2020-01-01,2030-12-31,2020-07-01,1234567890,SBIN0001234,State Bank of India,Main Branch,John Doe\nMs,Jane,Smith,Jane Smith,jane.smith@company.com,Project Manager,IT,Manager,Grade B,EMP002,PF67890,70000,7000,4000,3000,12000,2000,1500,3500,4000,1800,1200,105000,108000,UAN987654321,SO002,1985-05-20,2018-03-15,2030-12-31,2018-09-15,9876543210,HDFC0002345,HDFC Bank,Corporate Branch,Jane Smith';
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'employee_master_template.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Template downloaded",
+      description: "Employee master template has been downloaded successfully."
+    });
+  };
+
   const downloadTemplate = (type: string) => {
     if (type === 'Building Master') {
       downloadBuildingTemplate();
     } else if (type === 'Allowance Master') {
       downloadAllowanceTemplate();
+    } else if (type === 'Employee Master') {
+      downloadEmployeeTemplate();
     } else {
       toast({
         title: "Template download",
