@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,11 +83,7 @@ const Login = () => {
           <div className="flex justify-center mb-6">
             <div className="flex items-center space-x-3">
               <Rocket className="w-8 h-8 text-red-500" />
-              <div>
-                <h1 className="text-2xl font-bold text-red-500">Premier</h1>
-                <h2 className="text-2xl font-bold text-red-500">Explosives</h2>
-                <h3 className="text-2xl font-bold text-red-500">Limited</h3>
-              </div>
+              <h1 className="text-2xl font-bold text-red-500">Premier Explosives Limited</h1>
             </div>
           </div>
           <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
