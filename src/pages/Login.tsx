@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 import { API_ENDPOINTS } from '@/config/api';
+import { Rocket } from 'lucide-react';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -80,10 +82,8 @@ const Login = () => {
       <div className="max-w-md w-full space-y-8 p-8">
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-12 bg-red-500 rounded-sm flex items-center justify-center">
-                <div className="w-3 h-8 bg-white rounded-full"></div>
-              </div>
+            <div className="flex items-center space-x-3">
+              <Rocket className="w-8 h-8 text-red-500" />
               <div>
                 <h1 className="text-2xl font-bold text-red-500">Premier</h1>
                 <h2 className="text-2xl font-bold text-red-500">Explosives</h2>
