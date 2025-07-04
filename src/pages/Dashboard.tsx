@@ -163,7 +163,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="bg-gray-600 text-white">
             <CardHeader>
-              <CardTitle className="text-center">Total Units Planned</CardTitle>
+              <CardTitle className="text-center">Total Buildings Planned</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-center">
