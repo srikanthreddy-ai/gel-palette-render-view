@@ -96,7 +96,7 @@ const Dashboard = () => {
       
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Employee Attendance</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="bg-blue-500 text-white">
             <CardHeader>
               <CardTitle className="text-center">Total Employees</CardTitle>
@@ -119,16 +119,6 @@ const Dashboard = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-red-500 text-white">
-            <CardHeader>
-              <CardTitle className="text-center">On Leave</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold text-center">
-                {isLoading ? '...' : totalEmployees - workedYesterday}
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
       
