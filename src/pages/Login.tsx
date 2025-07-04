@@ -86,7 +86,7 @@ const Login = () => {
               <h1 className="text-2xl font-bold text-red-500">Premier Explosives Limited</h1>
             </div>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
+          <h2 className="text-3xl font-bold text-gray-900">Welcome</h2>
           <p className="mt-2 text-gray-600">Please login to your account</p>
         </div>
         
