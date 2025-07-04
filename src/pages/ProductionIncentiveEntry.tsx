@@ -92,6 +92,7 @@ interface SelectedCustomer {
 
 const ProductionIncentiveEntry = () => {
   const [productionDate, setProductionDate] = useState<Date | null>(null);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState('');
   const [selectedNature, setSelectedNature] = useState('');
   const [selectedShift, setSelectedShift] = useState('');
@@ -612,7 +613,7 @@ const ProductionIncentiveEntry = () => {
             {/* Production Date */}
             <div className="space-y-2">
               <Label>Production Date</Label>
-              <Popover>
+              <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -632,8 +633,12 @@ const ProductionIncentiveEntry = () => {
                   <Calendar
                     mode="single"
                     selected={productionDate || undefined}
-                    onSelect={(date) => setProductionDate(date || null)}
+                    onSelect={(date) => {
+                      setProductionDate(date || null);
+                      setIsDatePickerOpen(false);
+                    }}
                     initialFocus
+                    className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
