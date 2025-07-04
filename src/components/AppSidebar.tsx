@@ -60,6 +60,12 @@ const AppSidebar = () => {
       module: "reports"
     },
     {
+      title: "Payroll",
+      icon: FileText,
+      url: "/payroll",
+      module: "payroll"
+    },
+    {
       title: "Master Data",
       icon: Database,
       url: "#",

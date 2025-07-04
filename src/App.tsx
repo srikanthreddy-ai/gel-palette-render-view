@@ -19,6 +19,7 @@ import ProductionIncentiveEntry from '@/pages/ProductionIncentiveEntry';
 import AddNewAllowance from '@/pages/AddNewAllowance';
 import AddGeneralIncentive from '@/pages/AddGeneralIncentive';
 import ViewAllowanceRecords from '@/pages/ViewAllowanceRecords';
+import Payroll from '@/pages/Payroll';
 import Index from '@/pages/Index';
 import NotFound from '@/pages/NotFound';
 import './App.css';
@@ -37,6 +38,7 @@ function App() {
             <Route path="/staff" element={<DashboardLayout><StaffManagement /></DashboardLayout>} />
             <Route path="/users" element={<DashboardLayout><Users /></DashboardLayout>} />
             <Route path="/reports" element={<DashboardLayout><Reports /></DashboardLayout>} />
+            <Route path="/payroll" element={<DashboardLayout><Payroll /></DashboardLayout>} />
             <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
             <Route path="/incentives/add" element={<DashboardLayout><ProductionIncentiveEntry /></DashboardLayout>} />
             <Route path="/incentives/add-allowance" element={<DashboardLayout><AddNewAllowance /></DashboardLayout>} />
