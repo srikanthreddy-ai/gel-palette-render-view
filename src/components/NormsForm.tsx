@@ -240,7 +240,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         min: incentive.min ? parseInt(incentive.min) : null,
         max: incentive.max ? parseInt(incentive.max) : null,
         each: incentive.each ? parseInt(incentive.each) : null,
-        amount: incentive.amount ? parseInt(incentive.amount) : null,
+        amount: incentive.amount ? parseFloat(incentive.amount) : null,
       }));
 
       const payload = {
@@ -480,6 +480,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
                   value={incentive.amount}
                   onChange={(e) => handleIncentiveChange(index, 'amount', e.target.value)}
                   placeholder="Amount"
+                  step="0.01"
                 />
               </div>
             </div>
