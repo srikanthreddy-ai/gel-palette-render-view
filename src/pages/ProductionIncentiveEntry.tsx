@@ -505,7 +505,7 @@ const ProductionIncentiveEntry = () => {
     setSelectedCustomers(prev => 
       prev.map(customer => 
         customer.empCode === empCode 
-          ? { ...customer, incentive }
+          ? { ...customer, incentive: parseFloat(incentive.toString()) || 0 }
           : customer
       )
     );
@@ -883,7 +883,7 @@ const ProductionIncentiveEntry = () => {
                           <Input
                             type="number"
                             value={customer.incentive}
-                            onChange={(e) => updateCustomerIncentive(customer.empCode, Number(e.target.value))}
+                            onChange={(e) => updateCustomerIncentive(customer.empCode, parseFloat(e.target.value) || 0)}
                             className="w-24"
                             step="0.01"
                           />
