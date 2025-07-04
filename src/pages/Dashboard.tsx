@@ -124,7 +124,9 @@ const Dashboard = () => {
               <CardTitle className="text-center">On Leave</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-bold text-center">5</div>
+              <div className="text-4xl font-bold text-center">
+                {isLoading ? '...' : totalEmployees - workedYesterday}
+              </div>
             </CardContent>
           </Card>
         </div>
