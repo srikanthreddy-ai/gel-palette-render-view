@@ -37,7 +37,7 @@ const AppSidebar = () => {
       subItems: [
         { title: "Incentive Entry", url: "/incentives/add" },
         { title: "Allowance Entry", url: "/incentives/add-allowance" },
-        { title: "Add General Incentive", url: "/incentives/add-general" },
+        { title: "General Incentive Entry", url: "/incentives/add-general" },
         { title: "View Allowance", url: "/incentives/view-allowance" }
       ]
     },
