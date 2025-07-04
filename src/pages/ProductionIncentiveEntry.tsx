@@ -400,8 +400,8 @@ const ProductionIncentiveEntry = () => {
       setEmployeeNorms(calculatedEmployeeNorms.toString());
     }
 
-    // Update incentives for all selected customers
-    updateAllCustomerIncentives();
+    // Update incentives for all selected customers (preserve manual changes)
+    updateNewCustomerIncentives();
   };
 
   const handleWorkedHrsChange = (value: string) => {
@@ -419,8 +419,8 @@ const ProductionIncentiveEntry = () => {
       setEmployeeNorms(calculatedEmployeeNorms.toString());
     }
 
-    // Update incentives for all selected customers
-    updateAllCustomerIncentives();
+    // Update incentives for all selected customers (preserve manual changes)
+    updateNewCustomerIncentives();
   };
 
   const updateAllCustomerIncentives = () => {
@@ -432,6 +432,25 @@ const ProductionIncentiveEntry = () => {
           ...customer,
           incentive: calculatedIncentive
         }))
+      );
+    }, 0);
+  };
+
+  const updateNewCustomerIncentives = () => {
+    // Only update incentives for customers that have the default calculated amount
+    setTimeout(() => {
+      const calculatedIncentive = calculateIncentiveAmount();
+      setSelectedCustomers(prev => 
+        prev.map(customer => {
+          // Only update if the current incentive matches the previously calculated amount
+          if (customer.incentive === calculatedIncentive) {
+            return {
+              ...customer,
+              incentive: calculatedIncentive
+            };
+          }
+          return customer;
+        })
       );
     }, 0);
   };
