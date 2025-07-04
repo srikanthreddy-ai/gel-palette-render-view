@@ -247,11 +247,44 @@ const ProductionIncentiveEntry = () => {
     }
   };
 
+  const handleBuildingChange = (buildingId: string) => {
+    setSelectedBuilding(buildingId);
+    // Clear selected nature when building changes
+    setSelectedNature('');
+    // Clear auto-populated fields
+    setProductionType('');
+    setManpower('');
+    setNorms('');
+    setOriginalNorms(0);
+    setOriginalManpower(1);
+    // Clear selected customers as their incentives are based on the previous building's nature
+    setSelectedCustomers([]);
+  };
+
+  const getFilteredNatures = () => {
+    if (!selectedBuilding) return [];
+    
+    // Find the selected building data
+    const selectedBuildingData = allNatureData.find(building => building.id === selectedBuilding);
+    
+    if (!selectedBuildingData || !selectedBuildingData.productionNatures) return [];
+    
+    // Return production natures for the selected building
+    return selectedBuildingData.productionNatures.map((nature: any) => ({
+      _id: nature.id,
+      name: nature.name,
+      category: 'nature',
+      isDeleted: false,
+      ...nature
+    }));
+  };
+
   const handleNatureChange = (natureId: string) => {
     setSelectedNature(natureId);
     
-    // Find the selected nature and auto-populate fields
-    const selectedNatureData = natures.find(nature => nature._id === natureId);
+    // Find the selected nature from filtered natures
+    const filteredNatures = getFilteredNatures();
+    const selectedNatureData = filteredNatures.find(nature => nature._id === natureId);
     if (selectedNatureData && selectedNatureData.productionType) {
       setProductionType(selectedNatureData.productionType);
       const originalManpowerValue = selectedNatureData.manpower || 1;
@@ -304,8 +337,9 @@ const ProductionIncentiveEntry = () => {
     console.log('Expected norms for current setup:', expectedNorms);
     console.log('Actual norms entered:', currentNorms);
 
-    // Find the selected nature data to get incentives
-    const selectedNatureData = natures.find(nature => nature._id === selectedNature);
+    // Find the selected nature data from filtered natures
+    const filteredNatures = getFilteredNatures();
+    const selectedNatureData = filteredNatures.find(nature => nature._id === selectedNature);
     if (!selectedNatureData || !selectedNatureData.incentives) {
       console.log('No nature data or incentives found');
       return 0;
@@ -647,7 +681,7 @@ const ProductionIncentiveEntry = () => {
             {/* Production Building */}
             <div className="space-y-2">
               <Label>Production Building</Label>
-              <Select value={selectedBuilding} onValueChange={setSelectedBuilding} disabled={isLoading}>
+              <Select value={selectedBuilding} onValueChange={handleBuildingChange} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue placeholder={isLoading ? "Loading..." : "Select Building"} />
                 </SelectTrigger>
@@ -664,12 +698,12 @@ const ProductionIncentiveEntry = () => {
             {/* Production Nature */}
             <div className="space-y-2">
               <Label>Production Nature</Label>
-              <Select value={selectedNature} onValueChange={handleNatureChange} disabled={isLoading}>
+              <Select value={selectedNature} onValueChange={handleNatureChange} disabled={isLoading || !selectedBuilding}>
                 <SelectTrigger>
-                  <SelectValue placeholder={isLoading ? "Loading..." : "Select Nature"} />
+                  <SelectValue placeholder={isLoading ? "Loading..." : !selectedBuilding ? "Select Building First" : "Select Nature"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {natures.map((nature) => (
+                  {getFilteredNatures().map((nature) => (
                     <SelectItem key={nature._id} value={nature._id}>
                       {nature.name}
                     </SelectItem>
