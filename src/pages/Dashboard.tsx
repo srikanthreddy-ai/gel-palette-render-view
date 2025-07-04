@@ -4,6 +4,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 const Dashboard = () => {
   const [totalEmployees, setTotalEmployees] = useState<number>(0);
+  const [workedYesterday, setWorkedYesterday] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -39,6 +40,46 @@ const Dashboard = () => {
         title: "Error",
         description: "Unable to connect to the server",
       });
+    }
+  };
+
+  const fetchWorkedYesterday = async () => {
+    try {
+      const authToken = sessionStorage.getItem('authToken');
+      
+      // Calculate yesterday's date
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayDate = yesterday.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      
+      console.log('Fetching worked yesterday count for date:', yesterdayDate);
+      
+      const response = await fetch(`https://pel-gel-backend.onrender.com/v1/api/getAllTimeSheets?date=${yesterdayDate}`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Timesheet response:', data);
+        setWorkedYesterday(data.totalItems || data.data?.length || 0);
+      } else {
+        console.error('Failed to fetch timesheet data:', response.status);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch timesheet data",
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching timesheet data:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Unable to connect to the server",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -46,6 +87,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchEmployeeCount();
+    fetchWorkedYesterday();
   }, []);
 
   return (
@@ -68,10 +110,12 @@ const Dashboard = () => {
           
           <Card className="bg-green-500 text-white">
             <CardHeader>
-              <CardTitle className="text-center">Present Today</CardTitle>
+              <CardTitle className="text-center">Worked Yesterday</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-bold text-center">15</div>
+              <div className="text-4xl font-bold text-center">
+                {isLoading ? '...' : workedYesterday}
+              </div>
             </CardContent>
           </Card>
           
