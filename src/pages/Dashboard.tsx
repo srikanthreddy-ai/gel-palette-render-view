@@ -177,7 +177,9 @@ const Dashboard = () => {
               <CardTitle className="text-center">Units Completed</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-bold text-center">350</div>
+              <div className="text-4xl font-bold text-center">
+                {isLoading ? '...' : totalUnitsPlanned}
+              </div>
             </CardContent>
           </Card>
           
@@ -186,7 +188,9 @@ const Dashboard = () => {
               <CardTitle className="text-center">Pending Units</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-bold text-center">150</div>
+              <div className="text-4xl font-bold text-center">
+                {isLoading ? '...' : totalUnitsPlanned}
+              </div>
             </CardContent>
           </Card>
         </div>
