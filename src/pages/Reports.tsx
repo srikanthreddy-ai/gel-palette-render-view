@@ -138,10 +138,10 @@ const Reports = () => {
       return;
     }
 
-    if (isAllowanceOrIncentive && (!reportPeriod || !selectedBuilding)) {
+    if (isAllowanceOrIncentive && !reportPeriod) {
       toast({
         title: "Missing Information",
-        description: "Please select report period and building for allowance/incentive reports",
+        description: "Please select report period for allowance/incentive reports",
         variant: "destructive"
       });
       return;
@@ -182,7 +182,9 @@ const Reports = () => {
       // Add additional parameters for allowance/incentive reports
       if (isAllowanceOrIncentive) {
         params.append('period', reportPeriod);
-        params.append('building', selectedBuilding);
+        if (selectedBuilding) {
+          params.append('building', selectedBuilding);
+        }
       }
 
       const response = await fetch(`${API_ENDPOINTS.DOWNLOAD_REPORT}?${params.toString()}`, {
@@ -203,7 +205,10 @@ const Reports = () => {
       
       let filename = `${selectedReport}_report_${format(startDate, 'yyyy-MM-dd')}_to_${format(endDate, 'yyyy-MM-dd')}`;
       if (isAllowanceOrIncentive) {
-        filename += `_${reportPeriod}_${selectedBuilding}`;
+        filename += `_${reportPeriod}`;
+        if (selectedBuilding) {
+          filename += `_${selectedBuilding}`;
+        }
       }
       filename += `.${reportType}`;
       
@@ -381,7 +386,7 @@ const Reports = () => {
               !startDate || 
               !endDate || 
               isDownloading ||
-              (isAllowanceOrIncentive && (!reportPeriod || !selectedBuilding))
+              (isAllowanceOrIncentive && !reportPeriod)
             }
             className="w-full"
           >
