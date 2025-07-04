@@ -605,7 +605,7 @@ const ProductionIncentiveEntry = () => {
     <div className="p-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">Production Incentive Entry</CardTitle>
+          <CardTitle className="text-2xl font-bold">Incentive Entry</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-4 gap-6 mb-6">
