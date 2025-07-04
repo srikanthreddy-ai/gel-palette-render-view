@@ -307,6 +307,8 @@ const ProductionIncentiveEntry = () => {
       const originalShiftHrsValue = selectedShiftData.shiftHrs;
       setShiftHrs(originalShiftHrsValue.toString());
       setOriginalShiftHrs(originalShiftHrsValue);
+      // Default worked hours to shift hours
+      setWorkedHrs(originalShiftHrsValue.toString());
     }
   };
 
@@ -771,10 +773,9 @@ const ProductionIncentiveEntry = () => {
               <Label>Shift Hrs</Label>
               <Input 
                 value={shiftHrs} 
-                onChange={(e) => handleShiftHrsChange(e.target.value)}
+                readOnly
+                className="bg-gray-50"
                 type="number"
-                min="0"
-                step="0.5"
               />
             </div>
           </div>
