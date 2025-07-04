@@ -318,30 +318,29 @@ const ProductionIncentiveEntry = () => {
   const calculateIncentiveAmount = () => {
     console.log('=== Incentive Calculation Debug ===');
     console.log('selectedNature:', selectedNature);
-    console.log('originalNorms:', originalNorms);
-    console.log('current norms:', norms);
-    console.log('current manpower:', manpower);
-    console.log('current shiftHrs:', shiftHrs);
+    console.log('employeeNorms:', employeeNorms);
+    console.log('norms (defaultNorms):', norms);
 
     // If any required values are missing, return 0
-    if (!selectedNature || !originalNorms || !employeeNorms || !manpower || !shiftHrs) {
+    if (!selectedNature || !employeeNorms || !norms) {
       console.log('Missing required values, returning 0');
       return 0;
     }
 
-    const currentNorms = parseFloat(employeeNorms) || 0;
-    const currentManpower = parseInt(manpower) || 1;
-    const currentShiftHrs = parseFloat(shiftHrs) || 1;
+    const currentEmployeeNorms = parseFloat(employeeNorms) || 0;
+    const defaultNorms = parseFloat(norms) || 0;
 
-    console.log('Parsed values:', { currentNorms, currentManpower, currentShiftHrs });
-    console.log('Original values:', { originalNorms, originalManpower, originalShiftHrs });
+    console.log('Parsed values:', { currentEmployeeNorms, defaultNorms });
 
-    // Calculate expected norms based on current manpower and shift hours
-    const perPersonPerHourNorms = originalNorms / (originalManpower * originalShiftHrs);
-    const expectedNorms = perPersonPerHourNorms * currentManpower * currentShiftHrs;
-    
-    console.log('Expected norms for current setup:', expectedNorms);
-    console.log('Actual norms entered:', currentNorms);
+    // Calculate extraNorms = EmployeeNorms - DefaultNorms
+    const extraNorms = currentEmployeeNorms - defaultNorms;
+    console.log('Extra norms (EmployeeNorms - DefaultNorms):', extraNorms);
+
+    // If extraNorms is less than or equal to 0, no incentive
+    if (extraNorms <= 0) {
+      console.log('Extra norms is <= 0, no incentive');
+      return 0;
+    }
 
     // Find the selected nature data from filtered natures
     const filteredNatures = getFilteredNatures();
@@ -353,24 +352,14 @@ const ProductionIncentiveEntry = () => {
 
     console.log('Selected nature incentives:', selectedNatureData.incentives);
 
-    // Calculate the difference between actual norms and expected norms
-    const difference = currentNorms - expectedNorms;
-    console.log('Norms difference (actual - expected):', difference);
-
-    // If difference is less than or equal to 0, no incentive
-    if (difference <= 0) {
-      console.log('Difference is <= 0, no incentive');
-      return 0;
-    }
-
-    // Find the appropriate incentive tier based on the difference
+    // Find the appropriate incentive tier based on extraNorms
     const incentiveTiers = selectedNatureData.incentives;
     let applicableTier = null;
 
-    console.log('Checking tiers for difference:', difference);
+    console.log('Checking tiers for extraNorms:', extraNorms);
     for (const tier of incentiveTiers) {
       console.log(`Checking tier: min=${tier.min}, max=${tier.max}, amount=${tier.amount}, each=${tier.each}`);
-      if (difference >= tier.min && (tier.max === null || difference <= tier.max)) {
+      if (extraNorms >= tier.min && (tier.max === null || extraNorms <= tier.max)) {
         applicableTier = tier;
         console.log('Found applicable tier:', tier);
         break;
@@ -383,21 +372,17 @@ const ProductionIncentiveEntry = () => {
       return 0;
     }
 
-    // Calculate the incentive
-    const eligibleUnits = Math.floor(difference / applicableTier.each);
-    const totalIncentive = eligibleUnits * applicableTier.amount;
+    // Calculate incentiveAmount = (extraNorms / each) * amount
+    const incentiveAmount = (extraNorms / applicableTier.each) * applicableTier.amount;
 
     console.log('Calculation:', {
-      difference,
-      expectedNorms,
-      actualNorms: currentNorms,
+      extraNorms,
       each: applicableTier.each,
-      eligibleUnits,
       amount: applicableTier.amount,
-      totalIncentive
+      incentiveAmount
     });
 
-    return parseFloat(totalIncentive.toFixed(2));
+    return parseFloat(incentiveAmount.toFixed(2));
   };
 
   const handleManpowerChange = (value: string) => {
@@ -800,7 +785,7 @@ const ProductionIncentiveEntry = () => {
               Calculated Incentive per Employee: ₹{calculateIncentiveAmount().toFixed(2)}
             </div>
             <div className="text-xs text-blue-600 mt-1">
-              Based on actual norms: {employeeNorms} vs expected norms: {originalNorms && originalManpower && originalShiftHrs ? ((originalNorms / (originalManpower * originalShiftHrs)) * (parseInt(manpower) || 1) * (parseFloat(shiftHrs) || 1)).toFixed(2) : 'N/A'}
+              Based on extra norms: {employeeNorms && norms ? (parseFloat(employeeNorms) - parseFloat(norms)).toFixed(2) : 'N/A'} (Employee Norms - Default Norms)
             </div>
           </div>
 
