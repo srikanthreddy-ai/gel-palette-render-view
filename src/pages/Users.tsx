@@ -26,9 +26,9 @@ interface User {
 const Users = () => {
   const { toast } = useToast();
   const [rolePermissions, setRolePermissions] = useState({
-    admin: ['dashboard', 'incentives', 'staff', 'reports', 'master_data', 'settings', 'users'],
-    manager: ['dashboard', 'incentives', 'staff', 'reports', 'users'],
-    hr: ['dashboard', 'staff', 'master_data', 'users'],
+    admin: ['dashboard', 'incentives', 'staff', 'reports', 'master_data', 'settings', 'users', 'payroll'],
+    manager: ['dashboard', 'incentives', 'staff', 'reports', 'users', 'payroll'],
+    hr: ['dashboard', 'staff', 'master_data', 'users', 'payroll'],
     supervisor: ['dashboard', 'incentives', 'staff']
   });
 
@@ -54,7 +54,8 @@ const Users = () => {
     { id: 'users', label: 'Users' },
     { id: 'reports', label: 'Reports' },
     { id: 'master_data', label: 'Master Data' },
-    { id: 'settings', label: 'Settings' }
+    { id: 'settings', label: 'Settings' },
+    { id: 'payroll', label: 'Payroll' }
   ];
 
   const roles = ['admin', 'manager', 'hr', 'supervisor'];
