@@ -102,6 +102,7 @@ const ProductionIncentiveEntry = () => {
   const [productionType, setProductionType] = useState('');
   const [manpower, setManpower] = useState('');
   const [norms, setNorms] = useState('');
+  const [employeeNorms, setEmployeeNorms] = useState('');
   const [shiftHrs, setShiftHrs] = useState('');
   const [workedHrs, setWorkedHrs] = useState('');
   const [originalNorms, setOriginalNorms] = useState(0); // Store original norms for calculation
@@ -256,6 +257,7 @@ const ProductionIncentiveEntry = () => {
     setProductionType('');
     setManpower('');
     setNorms('');
+    setEmployeeNorms('');
     setOriginalNorms(0);
     setOriginalManpower(1);
     // Clear selected customers as their incentives are based on the previous building's nature
@@ -293,6 +295,7 @@ const ProductionIncentiveEntry = () => {
       
       setManpower(originalManpowerValue.toString());
       setNorms(originalNormsValue.toString());
+      setEmployeeNorms(originalNormsValue.toString());
       setOriginalNorms(originalNormsValue);
       setOriginalManpower(originalManpowerValue);
     }
@@ -321,12 +324,12 @@ const ProductionIncentiveEntry = () => {
     console.log('current shiftHrs:', shiftHrs);
 
     // If any required values are missing, return 0
-    if (!selectedNature || !originalNorms || !norms || !manpower || !shiftHrs) {
+    if (!selectedNature || !originalNorms || !employeeNorms || !manpower || !shiftHrs) {
       console.log('Missing required values, returning 0');
       return 0;
     }
 
-    const currentNorms = parseFloat(norms) || 0;
+    const currentNorms = parseFloat(employeeNorms) || 0;
     const currentManpower = parseInt(manpower) || 1;
     const currentShiftHrs = parseFloat(shiftHrs) || 1;
 
@@ -552,6 +555,7 @@ const ProductionIncentiveEntry = () => {
           incentiveAmount: customer.incentive,
           productionType: selectedNatureData?.productionType || '',
           norms: norms,
+          employeeNorms: employeeNorms,
           workedHrs: workedHrs,
         };
 
@@ -596,6 +600,7 @@ const ProductionIncentiveEntry = () => {
         setProductionType('');
         setManpower('');
         setNorms('');
+        setEmployeeNorms('');
         setShiftHrs('');
         setWorkedHrs('');
         setSelectedCustomers([]);
@@ -736,7 +741,7 @@ const ProductionIncentiveEntry = () => {
           </div>
 
           {/* Second Row - Editable fields */}
-          <div className="grid grid-cols-5 gap-6 mb-6">
+          <div className="grid grid-cols-6 gap-6 mb-6">
             <div className="space-y-2">
               <Label>Production Type</Label>
               <Input value={productionType} readOnly className="bg-gray-50" />
@@ -751,12 +756,21 @@ const ProductionIncentiveEntry = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label>Norms</Label>
+              <Label>Employee Norms</Label>
               <Input 
-                value={norms} 
-                onChange={(e) => handleNormsChange(e.target.value)}
+                value={employeeNorms} 
+                onChange={(e) => setEmployeeNorms(e.target.value)}
                 type="number"
                 min="0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Default Norms</Label>
+              <Input 
+                value={norms} 
+                readOnly
+                className="bg-gray-50"
+                type="number"
               />
             </div>
             <div className="space-y-2">
@@ -786,7 +800,7 @@ const ProductionIncentiveEntry = () => {
               Calculated Incentive per Employee: ₹{calculateIncentiveAmount().toFixed(2)}
             </div>
             <div className="text-xs text-blue-600 mt-1">
-              Based on actual norms: {norms} vs expected norms: {originalNorms && originalManpower && originalShiftHrs ? ((originalNorms / (originalManpower * originalShiftHrs)) * (parseInt(manpower) || 1) * (parseFloat(shiftHrs) || 1)).toFixed(2) : 'N/A'}
+              Based on actual norms: {employeeNorms} vs expected norms: {originalNorms && originalManpower && originalShiftHrs ? ((originalNorms / (originalManpower * originalShiftHrs)) * (parseInt(manpower) || 1) * (parseFloat(shiftHrs) || 1)).toFixed(2) : 'N/A'}
             </div>
           </div>
 
