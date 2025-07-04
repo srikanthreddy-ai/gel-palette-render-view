@@ -103,6 +103,7 @@ const ProductionIncentiveEntry = () => {
   const [manpower, setManpower] = useState('');
   const [norms, setNorms] = useState('');
   const [shiftHrs, setShiftHrs] = useState('');
+  const [workedHrs, setWorkedHrs] = useState('');
   const [originalNorms, setOriginalNorms] = useState(0); // Store original norms for calculation
   const [originalManpower, setOriginalManpower] = useState(1); // Store original manpower for calculation
   const [originalShiftHrs, setOriginalShiftHrs] = useState(1); // Store original shift hours for calculation
@@ -549,6 +550,7 @@ const ProductionIncentiveEntry = () => {
           incentiveAmount: customer.incentive,
           productionType: selectedNatureData?.productionType || '',
           norms: norms,
+          workedHrs: workedHrs,
         };
 
         console.log('Submitting timesheet for customer:', customer.customerName, payload);
@@ -593,6 +595,7 @@ const ProductionIncentiveEntry = () => {
         setManpower('');
         setNorms('');
         setShiftHrs('');
+        setWorkedHrs('');
         setSelectedCustomers([]);
         setCustomerSearch('');
       } else if (successCount > 0 && errorCount > 0) {
@@ -731,7 +734,7 @@ const ProductionIncentiveEntry = () => {
           </div>
 
           {/* Second Row - Editable fields */}
-          <div className="grid grid-cols-4 gap-6 mb-6">
+          <div className="grid grid-cols-5 gap-6 mb-6">
             <div className="space-y-2">
               <Label>Production Type</Label>
               <Input value={productionType} readOnly className="bg-gray-50" />
@@ -752,6 +755,16 @@ const ProductionIncentiveEntry = () => {
                 onChange={(e) => handleNormsChange(e.target.value)}
                 type="number"
                 min="0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Worked Hrs</Label>
+              <Input 
+                value={workedHrs} 
+                onChange={(e) => setWorkedHrs(e.target.value)}
+                type="number"
+                min="0"
+                step="0.5"
               />
             </div>
             <div className="space-y-2">
