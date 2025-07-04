@@ -36,7 +36,7 @@ const AppSidebar = () => {
       module: "incentives",
       subItems: [
         { title: "Incentive Entry", url: "/incentives/add" },
-        { title: "Add Allowance", url: "/incentives/add-allowance" },
+        { title: "Allowance Entry", url: "/incentives/add-allowance" },
         { title: "Add General Incentive", url: "/incentives/add-general" },
         { title: "View Allowance", url: "/incentives/view-allowance" }
       ]
