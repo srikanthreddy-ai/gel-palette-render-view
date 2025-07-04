@@ -5,7 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 const Dashboard = () => {
   const [totalEmployees, setTotalEmployees] = useState<number>(0);
   const [workedYesterday, setWorkedYesterday] = useState<number>(0);
-  const [totalUnitsPlanned, setTotalUnitsPlanned] = useState<number>(0);
+  const [totalBuildingsPlanned, setTotalBuildingsPlanned] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -44,10 +44,10 @@ const Dashboard = () => {
     }
   };
 
-  const fetchTotalUnitsPlanned = async () => {
+  const fetchTotalBuildingsPlanned = async () => {
     try {
       const authToken = sessionStorage.getItem('authToken');
-      console.log('Fetching total units planned...');
+      console.log('Fetching total buildings planned...');
       
       const response = await fetch('https://pel-gel-backend.onrender.com/v1/api/ProductionDept', {
         headers: {
@@ -59,7 +59,7 @@ const Dashboard = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Production departments response:', data);
-        setTotalUnitsPlanned(data.data?.length || 0);
+        setTotalBuildingsPlanned(data.data?.length || 0);
       } else {
         console.error('Failed to fetch production departments:', response.status);
         toast({
@@ -122,7 +122,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchEmployeeCount();
-    fetchTotalUnitsPlanned();
+    fetchTotalBuildingsPlanned();
     fetchWorkedYesterday();
   }, []);
 
@@ -167,29 +167,29 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-center">
-                {isLoading ? '...' : totalUnitsPlanned}
+                {isLoading ? '...' : totalBuildingsPlanned}
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-cyan-500 text-white">
             <CardHeader>
-              <CardTitle className="text-center">Units Completed</CardTitle>
+              <CardTitle className="text-center">Buildings Completed</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-center">
-                {isLoading ? '...' : totalUnitsPlanned}
+                {isLoading ? '...' : totalBuildingsPlanned}
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-orange-500 text-white">
             <CardHeader>
-              <CardTitle className="text-center">Pending Units</CardTitle>
+              <CardTitle className="text-center">Pending Buildings</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-center">
-                {isLoading ? '...' : totalUnitsPlanned}
+                {isLoading ? '...' : totalBuildingsPlanned}
               </div>
             </CardContent>
           </Card>
