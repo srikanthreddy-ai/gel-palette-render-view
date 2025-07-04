@@ -18,10 +18,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Default role permissions - fallback when no privileges from API
 const defaultRolePermissions = {
-  admin: ['dashboard', 'incentives', 'staff', 'reports', 'master_data', 'settings', 'users'],
-  manager: ['dashboard', 'incentives', 'staff', 'reports', 'users'],
+  admin: ['dashboard', 'incentives', 'staff', 'reports', 'master_data', 'settings', 'users', 'payroll'],
+  manager: ['dashboard', 'incentives', 'staff', 'reports', 'users', 'payroll'],
   user: ['dashboard', 'incentives'],
-  hr: ['dashboard', 'staff', 'master_data', 'users']
+  hr: ['dashboard', 'staff', 'master_data', 'users', 'payroll']
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
