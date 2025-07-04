@@ -403,38 +403,38 @@ const ProductionIncentiveEntry = () => {
   const handleManpowerChange = (value: string) => {
     setManpower(value);
     
-    // Recalculate norms based on new manpower
+    // Recalculate employee norms based on new manpower and worked hours
     const newManpower = parseInt(value) || 1;
-    if (originalNorms > 0 && originalManpower > 0) {
-      // Calculate per-person norms from original data, then multiply by new manpower
-      const perPersonNorms = originalNorms / originalManpower;
-      const calculatedNorms = perPersonNorms * newManpower;
-      setNorms(calculatedNorms.toString());
-    }
-
-    // Update incentives for all selected customers
-    updateAllCustomerIncentives();
-  };
-
-  const handleShiftHrsChange = (value: string) => {
-    setShiftHrs(value);
+    const currentWorkedHrs = parseFloat(workedHrs) || originalShiftHrs;
     
-    // Recalculate norms based on new shift hours
-    const newShiftHrs = parseFloat(value) || 1;
-    if (originalNorms > 0 && originalShiftHrs > 0) {
-      // Calculate per-hour norms from original data, then multiply by new shift hours
-      const perHourNorms = originalNorms / originalShiftHrs;
-      const calculatedNorms = perHourNorms * newShiftHrs;
-      setNorms(calculatedNorms.toString());
+    if (originalNorms > 0 && originalManpower > 0 && originalShiftHrs > 0) {
+      // Calculate per-person per-hour norms from original data
+      const perPersonPerHourNorms = originalNorms / (originalManpower * originalShiftHrs);
+      // Calculate based on new manpower and current worked hours
+      const calculatedEmployeeNorms = perPersonPerHourNorms * newManpower * currentWorkedHrs;
+      setEmployeeNorms(calculatedEmployeeNorms.toString());
     }
 
     // Update incentives for all selected customers
     updateAllCustomerIncentives();
   };
 
-  const handleNormsChange = (value: string) => {
-    setNorms(value);
-    // Update incentives for all selected customers when norms change manually
+  const handleWorkedHrsChange = (value: string) => {
+    setWorkedHrs(value);
+    
+    // Recalculate employee norms based on current manpower and new worked hours
+    const currentManpower = parseInt(manpower) || 1;
+    const newWorkedHrs = parseFloat(value) || 0;
+    
+    if (originalNorms > 0 && originalManpower > 0 && originalShiftHrs > 0) {
+      // Calculate per-person per-hour norms from original data
+      const perPersonPerHourNorms = originalNorms / (originalManpower * originalShiftHrs);
+      // Calculate based on current manpower and new worked hours
+      const calculatedEmployeeNorms = perPersonPerHourNorms * currentManpower * newWorkedHrs;
+      setEmployeeNorms(calculatedEmployeeNorms.toString());
+    }
+
+    // Update incentives for all selected customers
     updateAllCustomerIncentives();
   };
 
@@ -777,7 +777,7 @@ const ProductionIncentiveEntry = () => {
               <Label>Worked Hrs</Label>
               <Input 
                 value={workedHrs} 
-                onChange={(e) => setWorkedHrs(e.target.value)}
+                onChange={(e) => handleWorkedHrsChange(e.target.value)}
                 type="number"
                 min="0"
                 step="0.5"
