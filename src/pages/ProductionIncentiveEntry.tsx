@@ -430,10 +430,12 @@ const ProductionIncentiveEntry = () => {
     // Use setTimeout to ensure state updates are processed first
     setTimeout(() => {
       const calculatedIncentive = calculateIncentiveAmount();
+      const individualTargetValue = parseInt(employeeNorms) || 0;
       setSelectedCustomers(prev => 
         prev.map(customer => ({
           ...customer,
-          incentive: calculatedIncentive
+          incentive: calculatedIncentive,
+          individualTarget: individualTargetValue
         }))
       );
     }, 0);
@@ -443,16 +445,21 @@ const ProductionIncentiveEntry = () => {
     // Only update incentives for customers that have the default calculated amount
     setTimeout(() => {
       const calculatedIncentive = calculateIncentiveAmount();
+      const individualTargetValue = parseInt(employeeNorms) || 0;
       setSelectedCustomers(prev => 
         prev.map(customer => {
           // Only update if the current incentive matches the previously calculated amount
           if (customer.incentive === calculatedIncentive) {
             return {
               ...customer,
-              incentive: calculatedIncentive
+              incentive: calculatedIncentive,
+              individualTarget: individualTargetValue
             };
           }
-          return customer;
+          return {
+            ...customer,
+            individualTarget: individualTargetValue
+          };
         })
       );
     }, 0);
@@ -492,7 +499,7 @@ const ProductionIncentiveEntry = () => {
       id: employee._id,
       customerName: employee.fullName,
       empCode: employee.empCode,
-      individualTarget: 0,
+      individualTarget: parseInt(employeeNorms) || 0,
       producedQty: 0,
       workedHrs: parseFloat(workedHrs) || 0,
       incentive: calculatedIncentive
@@ -794,7 +801,19 @@ const ProductionIncentiveEntry = () => {
               <Label>Target Norms</Label>
               <Input 
                 value={employeeNorms} 
-                onChange={(e) => setEmployeeNorms(e.target.value)}
+                onChange={(e) => {
+                  setEmployeeNorms(e.target.value);
+                  // Update Individual Target for all existing customers when Target Norms changes
+                  setTimeout(() => {
+                    const individualTargetValue = parseInt(e.target.value) || 0;
+                    setSelectedCustomers(prev => 
+                      prev.map(customer => ({
+                        ...customer,
+                        individualTarget: individualTargetValue
+                      }))
+                    );
+                  }, 0);
+                }}
                 type="number"
                 min="0"
               />
