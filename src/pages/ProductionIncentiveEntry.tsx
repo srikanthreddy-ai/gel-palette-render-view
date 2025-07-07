@@ -87,6 +87,9 @@ interface SelectedCustomer {
   id: string;
   customerName: string;
   empCode: string;
+  individualTarget: number;
+  producedQty: number;
+  workedHrs: number;
   incentive: number;
 }
 
@@ -489,6 +492,9 @@ const ProductionIncentiveEntry = () => {
       id: employee._id,
       customerName: employee.fullName,
       empCode: employee.empCode,
+      individualTarget: 0,
+      producedQty: 0,
+      workedHrs: parseFloat(workedHrs) || 0,
       incentive: calculatedIncentive
     };
 
@@ -501,14 +507,18 @@ const ProductionIncentiveEntry = () => {
     setSelectedCustomers(prev => prev.filter(customer => customer.empCode !== empCode));
   };
 
-  const updateCustomerIncentive = (empCode: string, incentive: number) => {
+  const updateCustomerField = (empCode: string, field: keyof SelectedCustomer, value: number) => {
     setSelectedCustomers(prev => 
       prev.map(customer => 
         customer.empCode === empCode 
-          ? { ...customer, incentive: parseFloat(incentive.toString()) || 0 }
+          ? { ...customer, [field]: value }
           : customer
       )
     );
+  };
+
+  const updateCustomerIncentive = (empCode: string, incentive: number) => {
+    updateCustomerField(empCode, 'incentive', parseFloat(incentive.toString()) || 0);
   };
 
   const handleSubmit = async () => {
@@ -557,10 +567,12 @@ const ProductionIncentiveEntry = () => {
           manpower: manpower,
           employeeCode: customer.empCode,
           incentiveAmount: customer.incentive,
+          individualTarget: customer.individualTarget,
+          producedQty: customer.producedQty,
+          workedHrs: customer.workedHrs,
           productionType: selectedNatureData?.productionType || '',
           norms: norms,
           employeeNorms: employeeNorms,
-          workedHrs: workedHrs,
         };
 
         console.log('Submitting timesheet for customer:', customer.customerName, payload);
@@ -862,6 +874,9 @@ const ProductionIncentiveEntry = () => {
                     <TableHead className="w-16">#</TableHead>
                     <TableHead>Customer Name</TableHead>
                     <TableHead>Employee Code</TableHead>
+                    <TableHead>Individual Target</TableHead>
+                    <TableHead>Produced Qty.</TableHead>
+                    <TableHead>Worked Hrs</TableHead>
                     <TableHead>Incentive (₹)</TableHead>
                     <TableHead className="w-20">Remove</TableHead>
                   </TableRow>
@@ -869,7 +884,7 @@ const ProductionIncentiveEntry = () => {
                 <TableBody>
                   {selectedCustomers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-gray-500 py-8">
+                      <TableCell colSpan={8} className="text-center text-gray-500 py-8">
                         No customers selected
                       </TableCell>
                     </TableRow>
@@ -879,6 +894,33 @@ const ProductionIncentiveEntry = () => {
                         <TableCell>{index + 1}</TableCell>
                         <TableCell>{customer.customerName}</TableCell>
                         <TableCell>{customer.empCode}</TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={customer.individualTarget}
+                            onChange={(e) => updateCustomerField(customer.empCode, 'individualTarget', parseFloat(e.target.value) || 0)}
+                            className="w-24"
+                            step="0.01"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={customer.producedQty}
+                            onChange={(e) => updateCustomerField(customer.empCode, 'producedQty', parseFloat(e.target.value) || 0)}
+                            className="w-24"
+                            step="0.01"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={customer.workedHrs}
+                            onChange={(e) => updateCustomerField(customer.empCode, 'workedHrs', parseFloat(e.target.value) || 0)}
+                            className="w-24"
+                            step="0.01"
+                          />
+                        </TableCell>
                         <TableCell>
                           <Input
                             type="number"
