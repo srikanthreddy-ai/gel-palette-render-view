@@ -384,7 +384,7 @@ const ProductionIncentiveEntry = () => {
   };
 
   const calculateIncentiveAmount = () => {
-    // This is kept for backward compatibility but not used for customer-level calculations
+    // This function is deprecated - use calculateCustomerIncentive instead
     return 0;
   };
 
@@ -429,14 +429,16 @@ const ProductionIncentiveEntry = () => {
   const updateAllCustomerIncentives = () => {
     // Use setTimeout to ensure state updates are processed first
     setTimeout(() => {
-      const calculatedIncentive = calculateIncentiveAmount();
       const individualTargetValue = parseInt(employeeNorms) || 0;
       setSelectedCustomers(prev => 
-        prev.map(customer => ({
-          ...customer,
-          incentive: calculatedIncentive,
-          individualTarget: individualTargetValue
-        }))
+        prev.map(customer => {
+          const calculatedIncentive = calculateCustomerIncentive(individualTargetValue, customer.producedQty);
+          return {
+            ...customer,
+            incentive: calculatedIncentive,
+            individualTarget: individualTargetValue
+          };
+        })
       );
     }, 0);
   };
@@ -444,20 +446,14 @@ const ProductionIncentiveEntry = () => {
   const updateNewCustomerIncentives = () => {
     // Only update incentives for customers that have the default calculated amount
     setTimeout(() => {
-      const calculatedIncentive = calculateIncentiveAmount();
       const individualTargetValue = parseInt(employeeNorms) || 0;
       setSelectedCustomers(prev => 
         prev.map(customer => {
-          // Only update if the current incentive matches the previously calculated amount
-          if (customer.incentive === calculatedIncentive) {
-            return {
-              ...customer,
-              incentive: calculatedIncentive,
-              individualTarget: individualTargetValue
-            };
-          }
+          // Recalculate incentive based on current individual target and produced qty
+          const newIncentive = calculateCustomerIncentive(individualTargetValue, customer.producedQty);
           return {
             ...customer,
+            incentive: newIncentive,
             individualTarget: individualTargetValue
           };
         })
@@ -493,7 +489,8 @@ const ProductionIncentiveEntry = () => {
     }
 
     // Calculate incentive for the new customer
-    const calculatedIncentive = calculateIncentiveAmount();
+    const individualTargetValue = parseInt(employeeNorms) || 0;
+    const calculatedIncentive = calculateCustomerIncentive(individualTargetValue, 0);
 
     const newCustomer: SelectedCustomer = {
       id: employee._id,
@@ -829,15 +826,6 @@ const ProductionIncentiveEntry = () => {
             </div>
           </div>
 
-          {/* Display calculated incentive amount */}
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="text-sm font-medium text-blue-800">
-              Calculated Incentive per Employee: ₹{calculateIncentiveAmount().toFixed(2)}
-            </div>
-            <div className="text-xs text-blue-600 mt-1">
-              Based on extra norms: {employeeNorms && norms ? (parseFloat(employeeNorms) - parseFloat(norms)).toFixed(2) : 'N/A'} (Employee Norms - Default Norms)
-            </div>
-          </div>
 
           {/* Search Customer */}
           <div className="space-y-2 mb-6">
