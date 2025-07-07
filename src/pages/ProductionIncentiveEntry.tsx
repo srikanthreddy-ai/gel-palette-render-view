@@ -318,26 +318,21 @@ const ProductionIncentiveEntry = () => {
     }
   };
 
-  const calculateIncentiveAmount = () => {
-    console.log('=== Incentive Calculation Debug ===');
+  const calculateCustomerIncentive = (individualTarget: number, producedQty: number) => {
+    console.log('=== Customer Incentive Calculation Debug ===');
+    console.log('individualTarget:', individualTarget);
+    console.log('producedQty:', producedQty);
     console.log('selectedNature:', selectedNature);
-    console.log('employeeNorms:', employeeNorms);
-    console.log('norms (defaultNorms):', norms);
 
     // If any required values are missing, return 0
-    if (!selectedNature || !employeeNorms || !norms) {
+    if (!selectedNature || individualTarget === 0) {
       console.log('Missing required values, returning 0');
       return 0;
     }
 
-    const currentEmployeeNorms = parseFloat(employeeNorms) || 0;
-    const defaultNorms = parseFloat(norms) || 0;
-
-    console.log('Parsed values:', { currentEmployeeNorms, defaultNorms });
-
-    // Calculate extraNorms = EmployeeNorms - DefaultNorms
-    const extraNorms = currentEmployeeNorms - defaultNorms;
-    console.log('Extra norms (EmployeeNorms - DefaultNorms):', extraNorms);
+    // Calculate extraNorms = Individual Target - Produced Qty
+    const extraNorms = individualTarget - producedQty;
+    console.log('Extra norms (Individual Target - Produced Qty):', extraNorms);
 
     // If extraNorms is less than or equal to 0, no incentive
     if (extraNorms <= 0) {
@@ -378,7 +373,7 @@ const ProductionIncentiveEntry = () => {
     // Calculate incentiveAmount = (extraNorms / each) * amount
     const incentiveAmount = (extraNorms / applicableTier.each) * applicableTier.amount;
 
-    console.log('Calculation:', {
+    console.log('Customer Calculation:', {
       extraNorms,
       each: applicableTier.each,
       amount: applicableTier.amount,
@@ -386,6 +381,11 @@ const ProductionIncentiveEntry = () => {
     });
 
     return parseFloat(incentiveAmount.toFixed(2));
+  };
+
+  const calculateIncentiveAmount = () => {
+    // This is kept for backward compatibility but not used for customer-level calculations
+    return 0;
   };
 
   const handleManpowerChange = (value: string) => {
@@ -922,35 +922,46 @@ const ProductionIncentiveEntry = () => {
                             step="0.01"
                           />
                         </TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            value={customer.producedQty}
-                            onChange={(e) => updateCustomerField(customer.empCode, 'producedQty', parseFloat(e.target.value) || 0)}
-                            className="w-24"
-                            step="0.01"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            value={customer.workedHrs}
-                            onChange={(e) => {
-                              const newWorkedHrs = parseFloat(e.target.value) || 0;
-                              updateCustomerField(customer.empCode, 'workedHrs', newWorkedHrs);
-                              
-                              // Recalculate Individual Target: Target Norms / Worked Hrs * Production Hrs
-                              if (newWorkedHrs > 0 && employeeNorms && workedHrs) {
-                                const targetNorms = parseFloat(employeeNorms) || 0;
-                                const productionHrs = parseFloat(workedHrs) || 0;
-                                const newIndividualTarget = Math.round((targetNorms / newWorkedHrs) * productionHrs);
-                                updateCustomerField(customer.empCode, 'individualTarget', newIndividualTarget);
-                              }
-                            }}
-                            className="w-24"
-                            step="0.01"
-                          />
-                        </TableCell>
+                         <TableCell>
+                           <Input
+                             type="number"
+                             value={customer.producedQty}
+                             onChange={(e) => {
+                               const newProducedQty = parseFloat(e.target.value) || 0;
+                               updateCustomerField(customer.empCode, 'producedQty', newProducedQty);
+                               
+                               // Recalculate incentive based on Individual Target - Produced Qty
+                               const newIncentive = calculateCustomerIncentive(customer.individualTarget, newProducedQty);
+                               updateCustomerField(customer.empCode, 'incentive', newIncentive);
+                             }}
+                             className="w-24"
+                             step="0.01"
+                           />
+                         </TableCell>
+                         <TableCell>
+                           <Input
+                             type="number"
+                             value={customer.workedHrs}
+                             onChange={(e) => {
+                               const newWorkedHrs = parseFloat(e.target.value) || 0;
+                               updateCustomerField(customer.empCode, 'workedHrs', newWorkedHrs);
+                               
+                               // Recalculate Individual Target: Target Norms / Worked Hrs * Production Hrs
+                               if (newWorkedHrs > 0 && employeeNorms && workedHrs) {
+                                 const targetNorms = parseFloat(employeeNorms) || 0;
+                                 const productionHrs = parseFloat(workedHrs) || 0;
+                                 const newIndividualTarget = Math.round((targetNorms / newWorkedHrs) * productionHrs);
+                                 updateCustomerField(customer.empCode, 'individualTarget', newIndividualTarget);
+                                 
+                                 // Recalculate incentive based on new Individual Target
+                                 const newIncentive = calculateCustomerIncentive(newIndividualTarget, customer.producedQty);
+                                 updateCustomerField(customer.empCode, 'incentive', newIncentive);
+                               }
+                             }}
+                             className="w-24"
+                             step="0.01"
+                           />
+                         </TableCell>
                         <TableCell>
                           <Input
                             type="number"
