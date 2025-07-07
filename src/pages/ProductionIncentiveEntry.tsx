@@ -763,24 +763,6 @@ const ProductionIncentiveEntry = () => {
               <Input value={productionType} readOnly className="bg-gray-50" />
             </div>
             <div className="space-y-2">
-              <Label>Man power</Label>
-              <Input 
-                value={manpower} 
-                onChange={(e) => handleManpowerChange(e.target.value)}
-                type="number"
-                min="1"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Employee Norms</Label>
-              <Input 
-                value={employeeNorms} 
-                onChange={(e) => setEmployeeNorms(e.target.value)}
-                type="number"
-                min="0"
-              />
-            </div>
-            <div className="space-y-2">
               <Label>Default Norms</Label>
               <Input 
                 value={norms} 
@@ -790,13 +772,31 @@ const ProductionIncentiveEntry = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label>Worked Hrs</Label>
+              <Label>Man power</Label>
+              <Input 
+                value={manpower} 
+                onChange={(e) => handleManpowerChange(e.target.value)}
+                type="number"
+                min="1"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Production Hrs</Label>
               <Input 
                 value={workedHrs} 
                 onChange={(e) => handleWorkedHrsChange(e.target.value)}
                 type="number"
                 min="0"
                 step="0.5"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Target Norms</Label>
+              <Input 
+                value={employeeNorms} 
+                onChange={(e) => setEmployeeNorms(e.target.value)}
+                type="number"
+                min="0"
               />
             </div>
             <div className="space-y-2">
@@ -876,7 +876,7 @@ const ProductionIncentiveEntry = () => {
                     <TableHead>Employee Code</TableHead>
                     <TableHead>Individual Target</TableHead>
                     <TableHead>Produced Qty.</TableHead>
-                    <TableHead>Worked Hrs</TableHead>
+                    <TableHead>Production Hrs</TableHead>
                     <TableHead>Incentive (₹)</TableHead>
                     <TableHead className="w-20">Remove</TableHead>
                   </TableRow>
@@ -898,8 +898,8 @@ const ProductionIncentiveEntry = () => {
                           <Input
                             type="number"
                             value={customer.individualTarget}
-                            onChange={(e) => updateCustomerField(customer.empCode, 'individualTarget', parseFloat(e.target.value) || 0)}
-                            className="w-24"
+                            readOnly
+                            className="w-24 bg-gray-50"
                             step="0.01"
                           />
                         </TableCell>
@@ -925,8 +925,8 @@ const ProductionIncentiveEntry = () => {
                           <Input
                             type="number"
                             value={customer.incentive}
-                            onChange={(e) => updateCustomerIncentive(customer.empCode, parseFloat(e.target.value) || 0)}
-                            className="w-24"
+                            readOnly
+                            className="w-24 bg-gray-50"
                             step="0.01"
                           />
                         </TableCell>
