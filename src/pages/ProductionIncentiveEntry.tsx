@@ -895,7 +895,7 @@ const ProductionIncentiveEntry = () => {
                     <TableHead>Employee Code</TableHead>
                     <TableHead>Individual Target</TableHead>
                     <TableHead>Produced Qty.</TableHead>
-                    <TableHead>Production Hrs</TableHead>
+                    <TableHead>Worked Hrs</TableHead>
                     <TableHead>Incentive (₹)</TableHead>
                     <TableHead className="w-20">Remove</TableHead>
                   </TableRow>
@@ -935,7 +935,18 @@ const ProductionIncentiveEntry = () => {
                           <Input
                             type="number"
                             value={customer.workedHrs}
-                            onChange={(e) => updateCustomerField(customer.empCode, 'workedHrs', parseFloat(e.target.value) || 0)}
+                            onChange={(e) => {
+                              const newWorkedHrs = parseFloat(e.target.value) || 0;
+                              updateCustomerField(customer.empCode, 'workedHrs', newWorkedHrs);
+                              
+                              // Recalculate Individual Target: Target Norms / Worked Hrs * Production Hrs
+                              if (newWorkedHrs > 0 && employeeNorms && workedHrs) {
+                                const targetNorms = parseFloat(employeeNorms) || 0;
+                                const productionHrs = parseFloat(workedHrs) || 0;
+                                const newIndividualTarget = Math.round((targetNorms / newWorkedHrs) * productionHrs);
+                                updateCustomerField(customer.empCode, 'individualTarget', newIndividualTarget);
+                              }
+                            }}
                             className="w-24"
                             step="0.01"
                           />
