@@ -330,9 +330,9 @@ const ProductionIncentiveEntry = () => {
       return 0;
     }
 
-    // Calculate extraNorms = Individual Target - Produced Qty
-    const extraNorms = individualTarget - producedQty;
-    console.log('Extra norms (Individual Target - Produced Qty):', extraNorms);
+    // Calculate extraNorms = Produced Qty - Individual Target  
+    const extraNorms = producedQty - individualTarget;
+    console.log('Extra norms (Produced Qty - Individual Target):', extraNorms);
 
     // If extraNorms is less than or equal to 0, no incentive
     if (extraNorms <= 0) {
