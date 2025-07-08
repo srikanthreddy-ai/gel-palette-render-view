@@ -5,6 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Table,
   TableBody,
   TableCell,
@@ -26,10 +33,26 @@ interface AllowanceRecord {
   department: string;
 }
 
+interface IncentiveRecord {
+  _id: string;
+  employeeId: string;
+  employeeName: string;
+  building: string;
+  nature: string;
+  amount: number;
+  date: string;
+  shift: string;
+  producedQty: number;
+  norms: number;
+}
+
+type Record = AllowanceRecord | IncentiveRecord;
+
 const ViewAllowanceRecords = () => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
-  const [allowanceRecords, setAllowanceRecords] = useState<AllowanceRecord[]>([]);
+  const [recordType, setRecordType] = useState<'allowance' | 'incentive'>('allowance');
+  const [records, setRecords] = useState<Record[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -53,14 +76,20 @@ const ViewAllowanceRecords = () => {
     }
 
     setIsLoading(true);
-    console.log('Searching allowance records from', fromDate, 'to', toDate);
+    console.log(`Searching ${recordType} records from`, fromDate, 'to', toDate);
 
     try {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Auth token:', authToken ? 'Present' : 'Missing');
 
-      // Updated endpoint to use getEmpAllowences
-      const response = await fetch(`https://pel-gel-backend.onrender.com/v1/api/getEmpAllowences?fromDate=${fromDate}&toDate=${toDate}`, {
+      let endpoint = '';
+      if (recordType === 'allowance') {
+        endpoint = `https://pel-gel-backend.onrender.com/v1/api/getEmpAllowences?fromDate=${fromDate}&toDate=${toDate}`;
+      } else {
+        endpoint = `https://pel-gel-backend.onrender.com/v1/api/getAllTimeSheets?fromDate=${fromDate}&toDate=${toDate}`;
+      }
+
+      const response = await fetch(endpoint, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -71,26 +100,44 @@ const ViewAllowanceRecords = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Allowance records data:', data);
+        console.log(`${recordType} records data:`, data);
         
-        // Transform the API data to match our interface
-        const transformedRecords = (data.data || []).map((record: any) => ({
-          _id: record._id,
-          employeeId: record.empCode,
-          employeeName: record.employee_id?.fullName || 'Unknown',
-          allowanceType: record.allowance_id?.allowence || 'Unknown',
-          amount: parseFloat(record.amount) || 0, // Convert string to number
-          date: record.productionDate,
-          shift: record.allowance_id?.shift || 'Unknown',
-          department: 'Unknown' // This field is not in the API response
-        }));
+        let transformedRecords: Record[] = [];
         
-        setAllowanceRecords(transformedRecords);
+        if (recordType === 'allowance') {
+          // Transform allowance data
+          transformedRecords = (data.data || []).map((record: any) => ({
+            _id: record._id,
+            employeeId: record.empCode,
+            employeeName: record.employee_id?.fullName || 'Unknown',
+            allowanceType: record.allowance_id?.allowence || 'Unknown',
+            amount: parseFloat(record.amount) || 0,
+            date: record.productionDate,
+            shift: record.allowance_id?.shift || 'Unknown',
+            department: 'Unknown'
+          }));
+        } else {
+          // Transform incentive data
+          transformedRecords = (data.data || data || []).map((record: any) => ({
+            _id: record._id,
+            employeeId: record.employeeCode || record.empCode,
+            employeeName: record.employee_id?.fullName || 'Unknown',
+            building: record.building_id?.buildingName || 'Unknown',
+            nature: record.nature_id?.name || 'Unknown',
+            amount: parseFloat(record.incentiveAmount) || 0,
+            date: record.productionDate,
+            shift: record.shiftName || 'Unknown',
+            producedQty: record.producedQty || 0,
+            norms: record.norms || 0
+          }));
+        }
+        
+        setRecords(transformedRecords);
         
         if (transformedRecords.length === 0) {
           toast({
             title: "No Records Found",
-            description: "No allowance records found for the selected date range",
+            description: `No ${recordType} records found for the selected date range`,
           });
         }
       } else {
@@ -98,11 +145,11 @@ const ViewAllowanceRecords = () => {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to fetch allowance records",
+          description: `Failed to fetch ${recordType} records`,
         });
       }
     } catch (error) {
-      console.error('Fetch allowance records error:', error);
+      console.error(`Fetch ${recordType} records error:`, error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -114,7 +161,11 @@ const ViewAllowanceRecords = () => {
   };
 
   const calculateTotal = () => {
-    return allowanceRecords.reduce((total, record) => total + (parseFloat(String(record.amount)) || 0), 0);
+    return records.reduce((total, record) => total + (parseFloat(String(record.amount)) || 0), 0);
+  };
+
+  const isAllowanceRecord = (record: Record): record is AllowanceRecord => {
+    return recordType === 'allowance';
   };
 
   return (
@@ -123,12 +174,24 @@ const ViewAllowanceRecords = () => {
         <CardHeader>
           <CardTitle className="text-2xl font-bold flex items-center gap-2">
             <Calendar className="h-6 w-6" />
-            View Allowance Records
+            View {recordType === 'allowance' ? 'Allowance' : 'Incentive'} Records
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Date Range Filter */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+          {/* Filter Controls */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+            <div>
+              <Label htmlFor="recordType">Record Type</Label>
+              <Select value={recordType} onValueChange={(value: 'allowance' | 'incentive') => setRecordType(value)}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="allowance">Allowance</SelectItem>
+                  <SelectItem value="incentive">Incentive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <Label htmlFor="fromDate">From Date</Label>
               <Input
@@ -162,11 +225,11 @@ const ViewAllowanceRecords = () => {
           </div>
 
           {/* Results Summary */}
-          {allowanceRecords.length > 0 && (
+          {records.length > 0 && (
             <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
               <div className="flex justify-between items-center">
                 <span className="text-green-800 font-medium">
-                  Total Records: {allowanceRecords.length}
+                  Total Records: {records.length}
                 </span>
                 <span className="text-green-800 font-bold">
                   Total Amount: ₹{calculateTotal().toFixed(2)}
@@ -175,7 +238,7 @@ const ViewAllowanceRecords = () => {
             </div>
           )}
 
-          {/* Allowance Records Table */}
+          {/* Records Table */}
           <div className="border rounded-lg">
             <Table>
               <TableHeader>
@@ -183,37 +246,65 @@ const ViewAllowanceRecords = () => {
                   <TableHead className="text-white font-bold">#</TableHead>
                   <TableHead className="text-white font-bold">Employee ID</TableHead>
                   <TableHead className="text-white font-bold">Employee Name</TableHead>
-                  <TableHead className="text-white font-bold">Allowance Type</TableHead>
-                  <TableHead className="text-white font-bold">Amount</TableHead>
-                  <TableHead className="text-white font-bold">Date</TableHead>
-                  <TableHead className="text-white font-bold">Shift</TableHead>
-                  <TableHead className="text-white font-bold">Department</TableHead>
+                  {recordType === 'allowance' ? (
+                    <>
+                      <TableHead className="text-white font-bold">Allowance Type</TableHead>
+                      <TableHead className="text-white font-bold">Amount</TableHead>
+                      <TableHead className="text-white font-bold">Date</TableHead>
+                      <TableHead className="text-white font-bold">Shift</TableHead>
+                      <TableHead className="text-white font-bold">Department</TableHead>
+                    </>
+                  ) : (
+                    <>
+                      <TableHead className="text-white font-bold">Building</TableHead>
+                      <TableHead className="text-white font-bold">Nature</TableHead>
+                      <TableHead className="text-white font-bold">Incentive Amount</TableHead>
+                      <TableHead className="text-white font-bold">Date</TableHead>
+                      <TableHead className="text-white font-bold">Shift</TableHead>
+                      <TableHead className="text-white font-bold">Produced Qty</TableHead>
+                      <TableHead className="text-white font-bold">Norms</TableHead>
+                    </>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
-                      Loading allowance records...
+                    <TableCell colSpan={recordType === 'allowance' ? 8 : 9} className="text-center py-8">
+                      Loading {recordType} records...
                     </TableCell>
                   </TableRow>
-                ) : allowanceRecords.length === 0 ? (
+                ) : records.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
-                      {fromDate && toDate ? 'No allowance records found for the selected date range' : 'Select date range and click search to view allowance records'}
+                    <TableCell colSpan={recordType === 'allowance' ? 8 : 9} className="text-center py-8">
+                      {fromDate && toDate ? `No ${recordType} records found for the selected date range` : `Select date range and click search to view ${recordType} records`}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  allowanceRecords.map((record, index) => (
+                  records.map((record, index) => (
                     <TableRow key={record._id} className={index % 2 === 1 ? "bg-red-50" : ""}>
                       <TableCell className="font-medium">{index + 1}</TableCell>
                       <TableCell className="font-medium">{record.employeeId}</TableCell>
                       <TableCell>{record.employeeName}</TableCell>
-                      <TableCell>{record.allowanceType}</TableCell>
-                      <TableCell className="font-medium">₹{record.amount}</TableCell>
-                      <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
-                      <TableCell>{record.shift}</TableCell>
-                      <TableCell>{record.department}</TableCell>
+                      {isAllowanceRecord(record) ? (
+                        <>
+                          <TableCell>{record.allowanceType}</TableCell>
+                          <TableCell className="font-medium">₹{record.amount}</TableCell>
+                          <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
+                          <TableCell>{record.shift}</TableCell>
+                          <TableCell>{record.department}</TableCell>
+                        </>
+                      ) : (
+                        <>
+                          <TableCell>{record.building}</TableCell>
+                          <TableCell>{record.nature}</TableCell>
+                          <TableCell className="font-medium">₹{record.amount}</TableCell>
+                          <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
+                          <TableCell>{record.shift}</TableCell>
+                          <TableCell>{record.producedQty}</TableCell>
+                          <TableCell>{record.norms}</TableCell>
+                        </>
+                      )}
                     </TableRow>
                   ))
                 )}
