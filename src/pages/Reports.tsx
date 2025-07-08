@@ -35,6 +35,8 @@ const Reports = () => {
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
   const [buildingOptions, setBuildingOptions] = useState<BuildingOption[]>([]);
   const [isLoadingBuildings, setIsLoadingBuildings] = useState(false);
   const { toast } = useToast();
@@ -323,7 +325,7 @@ const Reports = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Start Date</label>
-              <Popover>
+              <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -340,7 +342,10 @@ const Reports = () => {
                   <Calendar
                     mode="single"
                     selected={startDate}
-                    onSelect={setStartDate}
+                    onSelect={(date) => {
+                      setStartDate(date);
+                      setStartDateOpen(false);
+                    }}
                     initialFocus
                     className={cn("p-3 pointer-events-auto")}
                   />
@@ -350,7 +355,7 @@ const Reports = () => {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">End Date</label>
-              <Popover>
+              <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -367,7 +372,10 @@ const Reports = () => {
                   <Calendar
                     mode="single"
                     selected={endDate}
-                    onSelect={setEndDate}
+                    onSelect={(date) => {
+                      setEndDate(date);
+                      setEndDateOpen(false);
+                    }}
                     initialFocus
                     className={cn("p-3 pointer-events-auto")}
                     disabled={(date) => startDate ? date < startDate : false}
