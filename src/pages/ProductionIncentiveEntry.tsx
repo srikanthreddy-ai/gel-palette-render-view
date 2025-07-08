@@ -567,16 +567,16 @@ const ProductionIncentiveEntry = () => {
           employee_id: customer.id,
           shift_id: selectedShift,
           shiftName: selectedShiftData?.shiftName || '',
-          shiftHrs: shiftHrs,
-          manpower: manpower,
+          shiftHrs: parseFloat(shiftHrs) || 0,
+          manpower: parseInt(manpower) || 0,
           employeeCode: customer.empCode,
           incentiveAmount: customer.incentive,
           individualTarget: customer.individualTarget,
           producedQty: customer.producedQty,
           workedHrs: customer.workedHrs,
           productionType: selectedNatureData?.productionType || '',
-          norms: norms,
-          employeeNorms: employeeNorms,
+          norms: parseFloat(norms) || 0,
+          employeeNorms: parseFloat(employeeNorms) || 0,
         };
 
         console.log('Submitting timesheet for customer:', customer.customerName, payload);
