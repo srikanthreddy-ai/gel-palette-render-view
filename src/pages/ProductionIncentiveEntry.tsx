@@ -400,7 +400,7 @@ const ProductionIncentiveEntry = () => {
       const perPersonPerHourNorms = originalNorms / (originalManpower * originalShiftHrs);
       // Calculate based on new manpower and current worked hours
       const calculatedEmployeeNorms = perPersonPerHourNorms * newManpower * currentWorkedHrs;
-      setEmployeeNorms(calculatedEmployeeNorms.toString());
+      setEmployeeNorms(Math.round(calculatedEmployeeNorms).toString());
     }
 
     // Update incentives for all selected customers (preserve manual changes)
@@ -419,7 +419,7 @@ const ProductionIncentiveEntry = () => {
       const perPersonPerHourNorms = originalNorms / (originalManpower * originalShiftHrs);
       // Calculate based on current manpower and new worked hours
       const calculatedEmployeeNorms = perPersonPerHourNorms * currentManpower * newWorkedHrs;
-      setEmployeeNorms(calculatedEmployeeNorms.toString());
+      setEmployeeNorms(Math.round(calculatedEmployeeNorms).toString());
     }
 
     // Update incentives for all selected customers (preserve manual changes)
