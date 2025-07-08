@@ -25,9 +25,17 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Search, Plus, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Search, Plus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 
 interface Shift {
   _id: string;
@@ -120,6 +128,10 @@ const ProductionIncentiveEntry = () => {
   const [selectedCustomers, setSelectedCustomers] = useState<SelectedCustomer[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   const { toast } = useToast();
   const baseURL = 'https://pel-gel-backend.onrender.com/v1/api';
@@ -650,6 +662,19 @@ const ProductionIncentiveEntry = () => {
     }
   };
 
+  // Calculate pagination values
+  const totalPages = Math.ceil(selectedCustomers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentCustomers = selectedCustomers.slice(startIndex, endIndex);
+
+  // Reset to first page when customers change
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [selectedCustomers.length, currentPage, totalPages]);
+
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -888,17 +913,17 @@ const ProductionIncentiveEntry = () => {
                     <TableHead className="w-20">Remove</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {selectedCustomers.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center text-gray-500 py-8">
-                        No customers selected
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    selectedCustomers.map((customer, index) => (
-                      <TableRow key={customer.empCode}>
-                        <TableCell>{index + 1}</TableCell>
+                 <TableBody>
+                   {selectedCustomers.length === 0 ? (
+                     <TableRow>
+                       <TableCell colSpan={8} className="text-center text-gray-500 py-8">
+                         No customers selected
+                       </TableCell>
+                     </TableRow>
+                   ) : (
+                     currentCustomers.map((customer, index) => (
+                       <TableRow key={customer.empCode}>
+                         <TableCell>{startIndex + index + 1}</TableCell>
                         <TableCell>{customer.customerName}</TableCell>
                         <TableCell>{customer.empCode}</TableCell>
                         <TableCell>
@@ -971,12 +996,47 @@ const ProductionIncentiveEntry = () => {
                       </TableRow>
                     ))
                   )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
+                 </TableBody>
+               </Table>
+             </div>
+             
+             {/* Pagination Controls */}
+             {selectedCustomers.length > itemsPerPage && (
+               <div className="flex justify-center mt-4">
+                 <Pagination>
+                   <PaginationContent>
+                     <PaginationItem>
+                       <PaginationPrevious
+                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                         className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                       />
+                     </PaginationItem>
+                     
+                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                       <PaginationItem key={page}>
+                         <PaginationLink
+                           onClick={() => setCurrentPage(page)}
+                           isActive={currentPage === page}
+                           className="cursor-pointer"
+                         >
+                           {page}
+                         </PaginationLink>
+                       </PaginationItem>
+                     ))}
+                     
+                     <PaginationItem>
+                       <PaginationNext
+                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                         className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                       />
+                     </PaginationItem>
+                   </PaginationContent>
+                 </Pagination>
+               </div>
+             )}
+           </div>
 
-          {/* Submit Button */}
+           {/* Submit Button */}
           <div className="mt-6 flex justify-end">
             <Button 
               onClick={handleSubmit} 
