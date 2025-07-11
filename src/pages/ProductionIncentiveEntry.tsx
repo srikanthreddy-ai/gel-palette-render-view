@@ -116,6 +116,7 @@ const ProductionIncentiveEntry = () => {
   const [employeeNorms, setEmployeeNorms] = useState('');
   const [shiftHrs, setShiftHrs] = useState('');
   const [workedHrs, setWorkedHrs] = useState('');
+  const [producedQty, setProducedQty] = useState(''); // Move Produced Qty to main form for group type
   const [originalNorms, setOriginalNorms] = useState(0); // Store original norms for calculation
   const [originalManpower, setOriginalManpower] = useState(1); // Store original manpower for calculation
   const [originalShiftHrs, setOriginalShiftHrs] = useState(1); // Store original shift hours for calculation
@@ -273,6 +274,7 @@ const ProductionIncentiveEntry = () => {
     setManpower('');
     setNorms('');
     setEmployeeNorms('');
+    setProducedQty('');
     setOriginalNorms(0);
     setOriginalManpower(1);
     // Clear selected customers as their incentives are based on the previous building's nature
@@ -633,6 +635,7 @@ const ProductionIncentiveEntry = () => {
         setManpower('');
         setNorms('');
         setEmployeeNorms('');
+        setProducedQty('');
         setShiftHrs('');
         setWorkedHrs('');
         setSelectedCustomers([]);
@@ -840,6 +843,18 @@ const ProductionIncentiveEntry = () => {
                 min="0"
               />
             </div>
+            {productionType.toLowerCase() === 'group' && (
+              <div className="space-y-2">
+                <Label>Produced Qty</Label>
+                <Input 
+                  value={producedQty} 
+                  onChange={(e) => setProducedQty(e.target.value)}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Shift Hrs</Label>
               <Input 
@@ -906,17 +921,17 @@ const ProductionIncentiveEntry = () => {
                     <TableHead className="w-16">#</TableHead>
                     <TableHead>Customer Name</TableHead>
                     <TableHead>Employee Code</TableHead>
-                    <TableHead>Individual Target</TableHead>
-                    <TableHead>Produced Qty.</TableHead>
+                    {productionType.toLowerCase() !== 'group' && <TableHead>Individual Target</TableHead>}
+                    {productionType.toLowerCase() !== 'group' && <TableHead>Produced Qty.</TableHead>}
                     <TableHead>Worked Hrs</TableHead>
                     <TableHead>Incentive (₹)</TableHead>
                     <TableHead className="w-20">Remove</TableHead>
                   </TableRow>
                 </TableHeader>
                  <TableBody>
-                   {selectedCustomers.length === 0 ? (
+                  {selectedCustomers.length === 0 ? (
                      <TableRow>
-                       <TableCell colSpan={8} className="text-center text-gray-500 py-8">
+                       <TableCell colSpan={productionType.toLowerCase() === 'group' ? 6 : 8} className="text-center text-gray-500 py-8">
                          No customers selected
                        </TableCell>
                      </TableRow>
@@ -926,31 +941,35 @@ const ProductionIncentiveEntry = () => {
                          <TableCell>{startIndex + index + 1}</TableCell>
                         <TableCell>{customer.customerName}</TableCell>
                         <TableCell>{customer.empCode}</TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            value={customer.individualTarget}
-                            readOnly
-                            className="w-24 bg-gray-50"
-                            step="0.01"
-                          />
-                        </TableCell>
-                         <TableCell>
-                           <Input
-                             type="number"
-                             value={customer.producedQty}
-                             onChange={(e) => {
-                               const newProducedQty = parseFloat(e.target.value) || 0;
-                               updateCustomerField(customer.empCode, 'producedQty', newProducedQty);
-                               
-                               // Recalculate incentive based on Individual Target - Produced Qty
-                               const newIncentive = calculateCustomerIncentive(customer.individualTarget, newProducedQty);
-                               updateCustomerField(customer.empCode, 'incentive', newIncentive);
-                             }}
-                             className="w-24"
-                             step="0.01"
-                           />
-                         </TableCell>
+                        {productionType.toLowerCase() !== 'group' && (
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={customer.individualTarget}
+                              readOnly
+                              className="w-24 bg-gray-50"
+                              step="0.01"
+                            />
+                          </TableCell>
+                        )}
+                        {productionType.toLowerCase() !== 'group' && (
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={customer.producedQty}
+                              onChange={(e) => {
+                                const newProducedQty = parseFloat(e.target.value) || 0;
+                                updateCustomerField(customer.empCode, 'producedQty', newProducedQty);
+                                
+                                // Recalculate incentive based on Individual Target - Produced Qty
+                                const newIncentive = calculateCustomerIncentive(customer.individualTarget, newProducedQty);
+                                updateCustomerField(customer.empCode, 'incentive', newIncentive);
+                              }}
+                              className="w-24"
+                              step="0.01"
+                            />
+                          </TableCell>
+                        )}
                          <TableCell>
                            <Input
                              type="number"
