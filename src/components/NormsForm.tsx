@@ -34,6 +34,7 @@ interface ProductionNature {
     each: number | null;
     min?: number | null;
     max?: number | null;
+    additionalValues?: boolean;
   }>;
   startDate: string;
   endDate: string;
@@ -56,7 +57,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
     norms: "",
     startDate: "",
     endDate: "",
-    incentives: [{ min: "", max: "", each: "", amount: "" }],
+    incentives: [{ min: "", max: "", each: "", amount: "", additionalValues: false }],
   });
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -81,8 +82,9 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
             max: incentive.max?.toString() || "",
             each: incentive.each?.toString() || "",
             amount: incentive.amount?.toString() || "",
+            additionalValues: incentive.additionalValues || false,
           }))
-        : [{ min: "", max: "", each: "", amount: "" }];
+        : [{ min: "", max: "", each: "", amount: "", additionalValues: false }];
 
       const formDataToSet = {
         building_id: norm.building_id?._id || "",
@@ -109,7 +111,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         norms: "",
         startDate: "",
         endDate: "",
-        incentives: [{ min: "", max: "", each: "", amount: "" }],
+        incentives: [{ min: "", max: "", each: "", amount: "", additionalValues: false }],
       });
     }
   }, [norm, buildings]); // Add buildings as dependency
@@ -186,7 +188,10 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
     setFormData(prev => ({
       ...prev,
       incentives: prev.incentives.map((incentive, i) => 
-        i === index ? { ...incentive, [field]: value } : incentive
+        i === index ? { 
+          ...incentive, 
+          [field]: field === 'additionalValues' ? value === 'true' : value 
+        } : incentive
       )
     }));
   };
@@ -194,7 +199,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
   const addIncentive = () => {
     setFormData(prev => ({
       ...prev,
-      incentives: [...prev.incentives, { min: "", max: "", each: "", amount: "" }]
+      incentives: [...prev.incentives, { min: "", max: "", each: "", amount: "", additionalValues: false }]
     }));
   };
 
@@ -238,9 +243,10 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
       // Prepare the payload with proper incentives formatting
       const formattedIncentives = formData.incentives.map(incentive => ({
         min: incentive.min ? parseInt(incentive.min) : null,
-        max: incentive.max ? parseInt(incentive.max) : null,
+        max: incentive.min && !incentive.max ? null : (incentive.max ? parseInt(incentive.max) : null),
         each: incentive.each ? parseInt(incentive.each) : null,
         amount: incentive.amount ? parseFloat(incentive.amount) : null,
+        additionalValues: incentive.additionalValues || false,
       }));
 
       const payload = {
@@ -459,8 +465,12 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
                   type="number"
                   value={incentive.max}
                   onChange={(e) => handleIncentiveChange(index, 'max', e.target.value)}
-                  placeholder="Max value"
+                  placeholder={incentive.min && !incentive.max ? "Infinite" : "Max value"}
+                  disabled={incentive.min && !incentive.max}
                 />
+                {incentive.min && !incentive.max && (
+                  <p className="text-xs text-muted-foreground mt-1">Auto set to infinite when min is provided</p>
+                )}
               </div>
               <div>
                 <Label htmlFor={`each-${index}`}>Each</Label>
@@ -474,14 +484,26 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
               </div>
               <div>
                 <Label htmlFor={`amount-${index}`}>Amount</Label>
-                <Input
-                  id={`amount-${index}`}
-                  type="number"
-                  value={incentive.amount}
-                  onChange={(e) => handleIncentiveChange(index, 'amount', e.target.value)}
-                  placeholder="Amount"
-                  step="0.01"
-                />
+                <div className="space-y-2">
+                  <Input
+                    id={`amount-${index}`}
+                    type="number"
+                    value={incentive.amount}
+                    onChange={(e) => handleIncentiveChange(index, 'amount', e.target.value)}
+                    placeholder="Amount"
+                    step="0.01"
+                  />
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`additional-${index}`}
+                      checked={incentive.additionalValues || false}
+                      onChange={(e) => handleIncentiveChange(index, 'additionalValues', e.target.checked.toString())}
+                      className="w-4 h-4"
+                    />
+                    <Label htmlFor={`additional-${index}`} className="text-sm">Additional</Label>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
