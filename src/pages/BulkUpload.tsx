@@ -190,6 +190,25 @@ const BulkUpload = () => {
     });
   };
 
+  const downloadNormsTemplate = () => {
+    const csvContent = 'buildingId,productionNature,productionType,productionCode,manpower,norms,description,startDate,endDate,incentives.0.min,incentives.0.max,incentives.0.each,incentives.0.amount,incentives.0.additionalValues,incentives.1.min,incentives.1.max,incentives.1.each,incentives.1.amount,incentives.1.additionalValues\nB001,Manufacturing,Type A,PC001,10,100,Sample production norm,2024-01-01,2024-12-31,50,100,5,500,true,101,200,10,1000,false\nB002,Assembly,Type B,PC002,15,150,Assembly production norm,2024-01-01,2024-12-31,75,150,7,750,false,151,300,15,1500,true';
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'norms_master_template.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Template downloaded",
+      description: "Norms master template has been downloaded successfully."
+    });
+  };
+
   const downloadTemplate = (type: string) => {
     if (type === 'Building Master') {
       downloadBuildingTemplate();
@@ -197,6 +216,8 @@ const BulkUpload = () => {
       downloadAllowanceTemplate();
     } else if (type === 'Employee Master') {
       downloadEmployeeTemplate();
+    } else if (type === 'Norms Master') {
+      downloadNormsTemplate();
     } else {
       toast({
         title: "Template download",
