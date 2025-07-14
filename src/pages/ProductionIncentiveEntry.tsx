@@ -299,21 +299,30 @@ const ProductionIncentiveEntry = () => {
     }));
   };
 
-  const calculateTargetNormsForGroup = (defaultNorms: number, manpower: number, shiftHrs: number, productionHrs: number) => {
-    if (defaultNorms === 0 || manpower === 0 || shiftHrs === 0) return 0;
+  const calculatePerHeadHour = () => {
+    const selectedNatureData = getFilteredNatures().find(nature => nature._id === selectedNature);
+    const selectedShiftData = shifts.find(shift => shift._id === selectedShift);
     
-    // dayhour = default norms / manpower / shift hrs
-    const dayHour = defaultNorms / manpower / shiftHrs;
+    if (!selectedNatureData || !selectedShiftData) return 0;
     
-    // Target Norms = dayhour * manpower * production Hrs
-    const targetNorms = dayHour * manpower * productionHrs;
+    const defaultNorms = selectedNatureData.norms || 0;
+    const defaultManpower = selectedNatureData.manpower || 1;
+    const defaultShiftHrs = selectedShiftData.shiftHrs || 8;
+    
+    const perHeadHour = defaultNorms / defaultManpower / defaultShiftHrs;
+    return parseFloat(perHeadHour.toFixed(4));
+  };
+
+  const calculateTargetNormsForGroup = (productionHrs: number, inputManpower: number) => {
+    const perHeadHour = calculatePerHeadHour();
+    
+    // Target Norms = perheadhour * production Hrs * manpower (from input)
+    const targetNorms = perHeadHour * productionHrs * inputManpower;
     
     console.log('=== Group Target Norms Calculation ===');
-    console.log('Default Norms:', defaultNorms);
-    console.log('Manpower:', manpower);
-    console.log('Shift Hrs:', shiftHrs);
+    console.log('Per Head Hour:', perHeadHour);
     console.log('Production Hrs:', productionHrs);
-    console.log('Day Hour (per head hour):', dayHour);
+    console.log('Input Manpower:', inputManpower);
     console.log('Calculated Target Norms:', targetNorms);
     
     return parseFloat(targetNorms.toFixed(4));
@@ -338,12 +347,7 @@ const ProductionIncentiveEntry = () => {
       // If production type is group, calculate target norms based on the formula
       if (selectedNatureData.productionType.toLowerCase() === 'group') {
         const currentWorkedHrs = parseFloat(workedHrs) || originalShiftHrs;
-        const calculatedTargetNorms = calculateTargetNormsForGroup(
-          originalNormsValue, 
-          originalManpowerValue, 
-          originalShiftHrs, 
-          currentWorkedHrs
-        );
+        const calculatedTargetNorms = calculateTargetNormsForGroup(currentWorkedHrs, originalManpowerValue);
         setEmployeeNorms(calculatedTargetNorms.toString());
       } else {
         setEmployeeNorms(originalNormsValue.toString());
@@ -445,12 +449,7 @@ const ProductionIncentiveEntry = () => {
     if (originalNorms > 0 && originalManpower > 0 && originalShiftHrs > 0) {
       if (productionType.toLowerCase() === 'group') {
         // For group production type, use the special calculation
-        const calculatedTargetNorms = calculateTargetNormsForGroup(
-          originalNorms, 
-          newManpower, 
-          originalShiftHrs, 
-          currentWorkedHrs
-        );
+        const calculatedTargetNorms = calculateTargetNormsForGroup(currentWorkedHrs, newManpower);
         setEmployeeNorms(calculatedTargetNorms.toString());
       } else {
         // Calculate per-person per-hour norms from original data
@@ -475,12 +474,7 @@ const ProductionIncentiveEntry = () => {
     if (originalNorms > 0 && originalManpower > 0 && originalShiftHrs > 0) {
       if (productionType.toLowerCase() === 'group') {
         // For group production type, use the special calculation
-        const calculatedTargetNorms = calculateTargetNormsForGroup(
-          originalNorms, 
-          currentManpower, 
-          originalShiftHrs, 
-          newWorkedHrs
-        );
+        const calculatedTargetNorms = calculateTargetNormsForGroup(newWorkedHrs, currentManpower);
         setEmployeeNorms(calculatedTargetNorms.toString());
       } else {
         // Calculate per-person per-hour norms from original data
@@ -849,6 +843,17 @@ const ProductionIncentiveEntry = () => {
               <Label>Production Type</Label>
               <Input value={productionType} readOnly className="bg-gray-50" />
             </div>
+            {productionType.toLowerCase() === 'group' && (
+              <div className="space-y-2">
+                <Label>Per Head Hour</Label>
+                <Input 
+                  value={calculatePerHeadHour()} 
+                  readOnly
+                  className="bg-gray-50"
+                  type="number"
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Default Norms</Label>
               <Input 
