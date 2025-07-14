@@ -299,6 +299,18 @@ const ProductionIncentiveEntry = () => {
     }));
   };
 
+  const calculateTargetNormsForGroup = (defaultNorms: number, manpower: number, shiftHrs: number, productionHrs: number) => {
+    if (defaultNorms === 0 || manpower === 0 || shiftHrs === 0) return 0;
+    
+    // dayhour = default norms / manpower / shift hrs
+    const dayHour = defaultNorms / manpower / shiftHrs;
+    
+    // Target Norms = dayhour * manpower * production Hrs
+    const targetNorms = dayHour * manpower * productionHrs;
+    
+    return Math.round(targetNorms);
+  };
+
   const handleNatureChange = (natureId: string) => {
     setSelectedNature(natureId);
     
@@ -312,9 +324,22 @@ const ProductionIncentiveEntry = () => {
       
       setManpower(originalManpowerValue.toString());
       setNorms(originalNormsValue.toString());
-      setEmployeeNorms(originalNormsValue.toString());
       setOriginalNorms(originalNormsValue);
       setOriginalManpower(originalManpowerValue);
+      
+      // If production type is group, calculate target norms based on the formula
+      if (selectedNatureData.productionType.toLowerCase() === 'group') {
+        const currentWorkedHrs = parseFloat(workedHrs) || originalShiftHrs;
+        const calculatedTargetNorms = calculateTargetNormsForGroup(
+          originalNormsValue, 
+          originalManpowerValue, 
+          originalShiftHrs, 
+          currentWorkedHrs
+        );
+        setEmployeeNorms(calculatedTargetNorms.toString());
+      } else {
+        setEmployeeNorms(originalNormsValue.toString());
+      }
     }
   };
 
@@ -410,11 +435,22 @@ const ProductionIncentiveEntry = () => {
     const currentWorkedHrs = parseFloat(workedHrs) || originalShiftHrs;
     
     if (originalNorms > 0 && originalManpower > 0 && originalShiftHrs > 0) {
-      // Calculate per-person per-hour norms from original data
-      const perPersonPerHourNorms = originalNorms / (originalManpower * originalShiftHrs);
-      // Calculate based on new manpower and current worked hours
-      const calculatedEmployeeNorms = perPersonPerHourNorms * newManpower * currentWorkedHrs;
-      setEmployeeNorms(Math.round(calculatedEmployeeNorms).toString());
+      if (productionType.toLowerCase() === 'group') {
+        // For group production type, use the special calculation
+        const calculatedTargetNorms = calculateTargetNormsForGroup(
+          originalNorms, 
+          newManpower, 
+          originalShiftHrs, 
+          currentWorkedHrs
+        );
+        setEmployeeNorms(calculatedTargetNorms.toString());
+      } else {
+        // Calculate per-person per-hour norms from original data
+        const perPersonPerHourNorms = originalNorms / (originalManpower * originalShiftHrs);
+        // Calculate based on new manpower and current worked hours
+        const calculatedEmployeeNorms = perPersonPerHourNorms * newManpower * currentWorkedHrs;
+        setEmployeeNorms(Math.round(calculatedEmployeeNorms).toString());
+      }
     }
 
     // Update incentives for all selected customers (preserve manual changes)
@@ -429,11 +465,22 @@ const ProductionIncentiveEntry = () => {
     const newWorkedHrs = parseFloat(value) || 0;
     
     if (originalNorms > 0 && originalManpower > 0 && originalShiftHrs > 0) {
-      // Calculate per-person per-hour norms from original data
-      const perPersonPerHourNorms = originalNorms / (originalManpower * originalShiftHrs);
-      // Calculate based on current manpower and new worked hours
-      const calculatedEmployeeNorms = perPersonPerHourNorms * currentManpower * newWorkedHrs;
-      setEmployeeNorms(Math.round(calculatedEmployeeNorms).toString());
+      if (productionType.toLowerCase() === 'group') {
+        // For group production type, use the special calculation
+        const calculatedTargetNorms = calculateTargetNormsForGroup(
+          originalNorms, 
+          currentManpower, 
+          originalShiftHrs, 
+          newWorkedHrs
+        );
+        setEmployeeNorms(calculatedTargetNorms.toString());
+      } else {
+        // Calculate per-person per-hour norms from original data
+        const perPersonPerHourNorms = originalNorms / (originalManpower * originalShiftHrs);
+        // Calculate based on current manpower and new worked hours
+        const calculatedEmployeeNorms = perPersonPerHourNorms * currentManpower * newWorkedHrs;
+        setEmployeeNorms(Math.round(calculatedEmployeeNorms).toString());
+      }
     }
 
     // Update incentives for all selected customers (preserve manual changes)
