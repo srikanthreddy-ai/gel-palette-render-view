@@ -308,7 +308,15 @@ const ProductionIncentiveEntry = () => {
     // Target Norms = dayhour * manpower * production Hrs
     const targetNorms = dayHour * manpower * productionHrs;
     
-    return Math.round(targetNorms);
+    console.log('=== Group Target Norms Calculation ===');
+    console.log('Default Norms:', defaultNorms);
+    console.log('Manpower:', manpower);
+    console.log('Shift Hrs:', shiftHrs);
+    console.log('Production Hrs:', productionHrs);
+    console.log('Day Hour (per head hour):', dayHour);
+    console.log('Calculated Target Norms:', targetNorms);
+    
+    return parseFloat(targetNorms.toFixed(4));
   };
 
   const handleNatureChange = (natureId: string) => {
