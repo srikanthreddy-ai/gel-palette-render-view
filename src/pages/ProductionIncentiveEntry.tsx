@@ -328,6 +328,15 @@ const ProductionIncentiveEntry = () => {
     return parseFloat(targetNorms.toFixed(4));
   };
 
+  const getTargetNormsValue = () => {
+    if (productionType.toLowerCase() === 'group') {
+      const currentManpower = parseInt(manpower) || 1;
+      const currentWorkedHrs = parseFloat(workedHrs) || 1;
+      return calculateTargetNormsForGroup(currentWorkedHrs, currentManpower);
+    }
+    return parseFloat(employeeNorms) || 0;
+  };
+
   const handleNatureChange = (natureId: string) => {
     setSelectedNature(natureId);
     
@@ -885,22 +894,26 @@ const ProductionIncentiveEntry = () => {
             <div className="space-y-2">
               <Label>Target Norms</Label>
               <Input 
-                value={employeeNorms} 
+                value={productionType.toLowerCase() === 'group' ? getTargetNormsValue() : employeeNorms} 
                 onChange={(e) => {
-                  setEmployeeNorms(e.target.value);
-                  // Update Individual Target for all existing customers when Target Norms changes
-                  setTimeout(() => {
-                    const individualTargetValue = parseInt(e.target.value) || 0;
-                    setSelectedCustomers(prev => 
-                      prev.map(customer => ({
-                        ...customer,
-                        individualTarget: individualTargetValue
-                      }))
-                    );
-                  }, 0);
+                  if (productionType.toLowerCase() !== 'group') {
+                    setEmployeeNorms(e.target.value);
+                    // Update Individual Target for all existing customers when Target Norms changes
+                    setTimeout(() => {
+                      const individualTargetValue = parseInt(e.target.value) || 0;
+                      setSelectedCustomers(prev => 
+                        prev.map(customer => ({
+                          ...customer,
+                          individualTarget: individualTargetValue
+                        }))
+                      );
+                    }, 0);
+                  }
                 }}
                 type="number"
                 min="0"
+                readOnly={productionType.toLowerCase() === 'group'}
+                className={productionType.toLowerCase() === 'group' ? 'bg-gray-50' : ''}
               />
             </div>
             {productionType.toLowerCase() === 'group' && (
