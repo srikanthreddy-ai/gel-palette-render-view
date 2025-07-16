@@ -918,7 +918,7 @@ const ProductionIncentiveEntry = () => {
             </div>
             {productionType.toLowerCase() === 'group' && (
               <div className="space-y-2">
-                <Label>Produced Qty</Label>
+                <Label>Net Production</Label>
                 <Input 
                   value={producedQty} 
                   onChange={(e) => setProducedQty(e.target.value)}
@@ -928,15 +928,6 @@ const ProductionIncentiveEntry = () => {
                 />
               </div>
             )}
-            <div className="space-y-2">
-              <Label>Shift Hrs</Label>
-              <Input 
-                value={shiftHrs} 
-                readOnly
-                className="bg-gray-50"
-                type="number"
-              />
-            </div>
           </div>
 
 
