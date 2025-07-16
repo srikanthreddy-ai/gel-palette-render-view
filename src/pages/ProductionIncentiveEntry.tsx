@@ -310,7 +310,7 @@ const ProductionIncentiveEntry = () => {
     const defaultShiftHrs = selectedShiftData.shiftHrs || 8;
     
     const perHeadHour = defaultNorms / defaultManpower / defaultShiftHrs;
-    return parseFloat(perHeadHour.toFixed(4));
+    return Math.round(perHeadHour);
   };
 
   const calculateTargetNormsForGroup = (productionHrs: number, inputManpower: number) => {
@@ -325,7 +325,7 @@ const ProductionIncentiveEntry = () => {
     console.log('Input Manpower:', inputManpower);
     console.log('Calculated Target Norms:', targetNorms);
     
-    return parseFloat(targetNorms.toFixed(4));
+    return Math.round(targetNorms);
   };
 
   const getTargetNormsValue = () => {
