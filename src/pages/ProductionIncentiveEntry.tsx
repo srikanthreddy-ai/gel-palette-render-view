@@ -378,6 +378,12 @@ const ProductionIncentiveEntry = () => {
     }
   };
 
+  const calculateIndividualTargetNorms = (customerWorkedHrs: number) => {
+    const perHeadHour = calculatePerHeadHour();
+    // Individual Target = PerHead Hour * 1 (single person) * worked hours
+    return Math.round(perHeadHour * 1 * customerWorkedHrs);
+  };
+
   const calculateCustomerIncentive = (individualTarget: number, producedQty: number) => {
     console.log('=== Customer Incentive Calculation Debug ===');
     console.log('individualTarget:', individualTarget);
@@ -390,9 +396,20 @@ const ProductionIncentiveEntry = () => {
       return 0;
     }
 
-    // Calculate extraNorms = Produced Qty - Individual Target  
-    const extraNorms = producedQty - individualTarget;
-    console.log('Extra norms (Produced Qty - Individual Target):', extraNorms);
+    let extraNorms = 0;
+    
+    if (productionType.toLowerCase() === 'group') {
+      // For group production, calculate extraNorms = Net Production - Target Norms
+      const netProduction = parseFloat(producedQty.toString()) || 0;
+      const targetNorms = getTargetNormsValue();
+      extraNorms = netProduction - targetNorms;
+      console.log('Group production - Net Production:', netProduction, 'Target Norms:', targetNorms);
+    } else {
+      // For individual production, calculate extraNorms = Produced Qty - Individual Target  
+      extraNorms = producedQty - individualTarget;
+    }
+    
+    console.log('Extra norms:', extraNorms);
 
     // If extraNorms is less than or equal to 0, no incentive
     if (extraNorms <= 0) {
@@ -516,17 +533,22 @@ const ProductionIncentiveEntry = () => {
   };
 
   const updateNewCustomerIncentives = () => {
-    // Only update incentives for customers that have the default calculated amount
+    // Update incentives and individual targets for all customers
     setTimeout(() => {
-      const individualTargetValue = parseInt(employeeNorms) || 0;
       setSelectedCustomers(prev => 
         prev.map(customer => {
-          // Recalculate incentive based on current individual target and produced qty
-          const newIncentive = calculateCustomerIncentive(individualTargetValue, customer.producedQty);
+          // Recalculate individual target based on customer's worked hours
+          const newIndividualTarget = productionType.toLowerCase() === 'group' 
+            ? calculateIndividualTargetNorms(customer.workedHrs)
+            : parseInt(employeeNorms) || 0;
+          
+          // Recalculate incentive based on new individual target and produced qty
+          const newIncentive = calculateCustomerIncentive(newIndividualTarget, customer.producedQty);
+          
           return {
             ...customer,
             incentive: newIncentive,
-            individualTarget: individualTargetValue
+            individualTarget: newIndividualTarget
           };
         })
       );
@@ -560,17 +582,20 @@ const ProductionIncentiveEntry = () => {
       return;
     }
 
-    // Calculate incentive for the new customer
-    const individualTargetValue = parseInt(employeeNorms) || 0;
+    // Calculate individual target for the new customer
+    const customerWorkedHrs = parseFloat(workedHrs) || 0;
+    const individualTargetValue = productionType.toLowerCase() === 'group' 
+      ? calculateIndividualTargetNorms(customerWorkedHrs)
+      : parseInt(employeeNorms) || 0;
     const calculatedIncentive = calculateCustomerIncentive(individualTargetValue, 0);
 
     const newCustomer: SelectedCustomer = {
       id: employee._id,
       customerName: employee.fullName,
       empCode: employee.empCode,
-      individualTarget: parseInt(employeeNorms) || 0,
+      individualTarget: individualTargetValue,
       producedQty: 0,
-      workedHrs: parseFloat(workedHrs) || 0,
+      workedHrs: customerWorkedHrs,
       incentive: calculatedIncentive
     };
 
@@ -585,11 +610,34 @@ const ProductionIncentiveEntry = () => {
 
   const updateCustomerField = (empCode: string, field: keyof SelectedCustomer, value: number) => {
     setSelectedCustomers(prev => 
-      prev.map(customer => 
-        customer.empCode === empCode 
-          ? { ...customer, [field]: value }
-          : customer
-      )
+      prev.map(customer => {
+        if (customer.empCode === empCode) {
+          const updatedCustomer = { ...customer, [field]: value };
+          
+          // If worked hours changed, recalculate individual target and incentive
+          if (field === 'workedHrs' && productionType.toLowerCase() === 'group') {
+            const newIndividualTarget = calculateIndividualTargetNorms(value);
+            const newIncentive = calculateCustomerIncentive(newIndividualTarget, updatedCustomer.producedQty);
+            return {
+              ...updatedCustomer,
+              individualTarget: newIndividualTarget,
+              incentive: newIncentive
+            };
+          }
+          
+          // If produced qty changed, recalculate incentive
+          if (field === 'producedQty') {
+            const newIncentive = calculateCustomerIncentive(updatedCustomer.individualTarget, value);
+            return {
+              ...updatedCustomer,
+              incentive: newIncentive
+            };
+          }
+          
+          return updatedCustomer;
+        }
+        return customer;
+      })
     );
   };
 
@@ -985,7 +1033,7 @@ const ProductionIncentiveEntry = () => {
                     <TableHead className="w-16">#</TableHead>
                     <TableHead>Customer Name</TableHead>
                     <TableHead>Employee Code</TableHead>
-                    {productionType.toLowerCase() !== 'group' && <TableHead>Individual Target</TableHead>}
+                    <TableHead>Target Norms</TableHead>
                     {productionType.toLowerCase() !== 'group' && <TableHead>Produced Qty.</TableHead>}
                     <TableHead>Worked Hrs</TableHead>
                     <TableHead>Incentive (₹)</TableHead>
@@ -994,79 +1042,53 @@ const ProductionIncentiveEntry = () => {
                 </TableHeader>
                  <TableBody>
                   {selectedCustomers.length === 0 ? (
-                     <TableRow>
-                       <TableCell colSpan={productionType.toLowerCase() === 'group' ? 6 : 8} className="text-center text-gray-500 py-8">
-                         No customers selected
-                       </TableCell>
-                     </TableRow>
+                      <TableRow>
+                        <TableCell colSpan={productionType.toLowerCase() === 'group' ? 7 : 8} className="text-center text-gray-500 py-8">
+                          No customers selected
+                        </TableCell>
+                      </TableRow>
                    ) : (
-                     currentCustomers.map((customer, index) => (
-                       <TableRow key={customer.empCode}>
-                         <TableCell>{startIndex + index + 1}</TableCell>
-                        <TableCell>{customer.customerName}</TableCell>
-                        <TableCell>{customer.empCode}</TableCell>
-                        {productionType.toLowerCase() !== 'group' && (
+                      currentCustomers.map((customer, index) => (
+                        <TableRow key={customer.empCode}>
+                          <TableCell>{startIndex + index + 1}</TableCell>
+                         <TableCell>{customer.customerName}</TableCell>
+                         <TableCell>{customer.empCode}</TableCell>
+                         <TableCell>
+                           <div className="text-sm font-medium">
+                             {customer.individualTarget}
+                           </div>
+                         </TableCell>
+                         {productionType.toLowerCase() !== 'group' && (
+                           <TableCell>
+                             <Input
+                               type="number"
+                               value={customer.producedQty}
+                               onChange={(e) => {
+                                 const newProducedQty = parseFloat(e.target.value) || 0;
+                                 updateCustomerField(customer.empCode, 'producedQty', newProducedQty);
+                               }}
+                               className="w-24"
+                               step="0.01"
+                             />
+                           </TableCell>
+                         )}
                           <TableCell>
                             <Input
                               type="number"
-                              value={customer.individualTarget}
-                              readOnly
-                              className="w-24 bg-gray-50"
-                              step="0.01"
-                            />
-                          </TableCell>
-                        )}
-                        {productionType.toLowerCase() !== 'group' && (
-                          <TableCell>
-                            <Input
-                              type="number"
-                              value={customer.producedQty}
+                              value={customer.workedHrs}
                               onChange={(e) => {
-                                const newProducedQty = parseFloat(e.target.value) || 0;
-                                updateCustomerField(customer.empCode, 'producedQty', newProducedQty);
-                                
-                                // Recalculate incentive based on Individual Target - Produced Qty
-                                const newIncentive = calculateCustomerIncentive(customer.individualTarget, newProducedQty);
-                                updateCustomerField(customer.empCode, 'incentive', newIncentive);
+                                const newWorkedHrs = parseFloat(e.target.value) || 0;
+                                updateCustomerField(customer.empCode, 'workedHrs', newWorkedHrs);
                               }}
                               className="w-24"
                               step="0.01"
                             />
                           </TableCell>
-                        )}
                          <TableCell>
-                           <Input
-                             type="number"
-                             value={customer.workedHrs}
-                             onChange={(e) => {
-                               const newWorkedHrs = parseFloat(e.target.value) || 0;
-                               updateCustomerField(customer.empCode, 'workedHrs', newWorkedHrs);
-                               
-                               // Recalculate Individual Target: Target Norms / Worked Hrs * Production Hrs
-                               if (newWorkedHrs > 0 && employeeNorms && workedHrs) {
-                                 const targetNorms = parseFloat(employeeNorms) || 0;
-                                 const productionHrs = parseFloat(workedHrs) || 0;
-                                 const newIndividualTarget = Math.round((targetNorms / newWorkedHrs) * productionHrs);
-                                 updateCustomerField(customer.empCode, 'individualTarget', newIndividualTarget);
-                                 
-                                 // Recalculate incentive based on new Individual Target
-                                 const newIncentive = calculateCustomerIncentive(newIndividualTarget, customer.producedQty);
-                                 updateCustomerField(customer.empCode, 'incentive', newIncentive);
-                               }
-                             }}
-                             className="w-24"
-                             step="0.01"
-                           />
+                           <div className="text-sm font-medium text-green-600">
+                             ₹{customer.incentive.toFixed(2)}
+                           </div>
                          </TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            value={customer.incentive}
-                            readOnly
-                            className="w-24 bg-gray-50"
-                            step="0.01"
-                          />
-                        </TableCell>
                         <TableCell>
                           <Button 
                             size="sm" 
