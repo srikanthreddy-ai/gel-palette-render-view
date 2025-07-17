@@ -581,14 +581,17 @@ const ProductionIncentiveEntry = () => {
     const individualTargetValue = productionType.toLowerCase() === 'group' 
       ? calculateIndividualTargetNorms(customerWorkedHrs)
       : parseInt(employeeNorms) || 0;
-    const calculatedIncentive = calculateCustomerIncentive(individualTargetValue, 0);
+    
+    // Get actual produced quantity from Net Production input
+    const actualProducedQty = parseFloat(producedQty) || 0;
+    const calculatedIncentive = calculateCustomerIncentive(individualTargetValue, actualProducedQty);
 
     const newCustomer: SelectedCustomer = {
       id: employee._id,
       customerName: employee.fullName,
       empCode: employee.empCode,
       individualTarget: individualTargetValue,
-      producedQty: 0,
+      producedQty: actualProducedQty,
       workedHrs: customerWorkedHrs,
       incentive: calculatedIncentive
     };
