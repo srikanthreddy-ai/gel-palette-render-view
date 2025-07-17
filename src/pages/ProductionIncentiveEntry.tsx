@@ -380,8 +380,9 @@ const ProductionIncentiveEntry = () => {
 
   const calculateIndividualTargetNorms = (customerWorkedHrs: number) => {
     const perHeadHour = calculatePerHeadHour();
-    // Individual Target = PerHead Hour * 1 (single person) * worked hours
-    return Math.round(perHeadHour * 1 * customerWorkedHrs);
+    const currentManpower = parseInt(manpower) || 1;
+    // Individual Target = PerHead Hour * ManPower * worked hours
+    return Math.round(perHeadHour * currentManpower * customerWorkedHrs);
   };
 
   const calculateCustomerIncentive = (individualTarget: number, producedQty: number) => {
