@@ -940,31 +940,6 @@ const ProductionIncentiveEntry = () => {
                 step="0.5"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Target Norms</Label>
-              <Input 
-                value={productionType.toLowerCase() === 'group' ? getTargetNormsValue() : employeeNorms} 
-                onChange={(e) => {
-                  if (productionType.toLowerCase() !== 'group') {
-                    setEmployeeNorms(e.target.value);
-                    // Update Individual Target for all existing customers when Target Norms changes
-                    setTimeout(() => {
-                      const individualTargetValue = parseInt(e.target.value) || 0;
-                      setSelectedCustomers(prev => 
-                        prev.map(customer => ({
-                          ...customer,
-                          individualTarget: individualTargetValue
-                        }))
-                      );
-                    }, 0);
-                  }
-                }}
-                type="number"
-                min="0"
-                readOnly={productionType.toLowerCase() === 'group'}
-                className={productionType.toLowerCase() === 'group' ? 'bg-gray-50' : ''}
-              />
-            </div>
             {productionType.toLowerCase() === 'group' && (
               <div className="space-y-2">
                 <Label>Net Production</Label>
@@ -1034,6 +1009,7 @@ const ProductionIncentiveEntry = () => {
                     <TableHead className="w-16">#</TableHead>
                     <TableHead>Customer Name</TableHead>
                     <TableHead>Employee Code</TableHead>
+                    <TableHead>Target Norms</TableHead>
                     {productionType.toLowerCase() !== 'group' && <TableHead>Produced Qty.</TableHead>}
                     <TableHead>Worked Hrs</TableHead>
                     <TableHead>Incentive (₹)</TableHead>
@@ -1043,7 +1019,7 @@ const ProductionIncentiveEntry = () => {
                  <TableBody>
                   {selectedCustomers.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={productionType.toLowerCase() === 'group' ? 6 : 7} className="text-center text-gray-500 py-8">
+                        <TableCell colSpan={productionType.toLowerCase() === 'group' ? 7 : 8} className="text-center text-gray-500 py-8">
                           No customers selected
                         </TableCell>
                       </TableRow>
@@ -1053,6 +1029,11 @@ const ProductionIncentiveEntry = () => {
                           <TableCell>{startIndex + index + 1}</TableCell>
                          <TableCell>{customer.customerName}</TableCell>
                          <TableCell>{customer.empCode}</TableCell>
+                         <TableCell>
+                           <div className="text-sm font-medium">
+                             {customer.individualTarget}
+                           </div>
+                         </TableCell>
                          {productionType.toLowerCase() !== 'group' && (
                            <TableCell>
                              <Input
