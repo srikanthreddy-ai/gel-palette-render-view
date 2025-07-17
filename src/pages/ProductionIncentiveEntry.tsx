@@ -940,31 +940,6 @@ const ProductionIncentiveEntry = () => {
                 step="0.5"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Target Norms</Label>
-              <Input 
-                value={productionType.toLowerCase() === 'group' ? getTargetNormsValue() : employeeNorms} 
-                onChange={(e) => {
-                  if (productionType.toLowerCase() !== 'group') {
-                    setEmployeeNorms(e.target.value);
-                    // Update Individual Target for all existing customers when Target Norms changes
-                    setTimeout(() => {
-                      const individualTargetValue = parseInt(e.target.value) || 0;
-                      setSelectedCustomers(prev => 
-                        prev.map(customer => ({
-                          ...customer,
-                          individualTarget: individualTargetValue
-                        }))
-                      );
-                    }, 0);
-                  }
-                }}
-                type="number"
-                min="0"
-                readOnly={productionType.toLowerCase() === 'group'}
-                className={productionType.toLowerCase() === 'group' ? 'bg-gray-50' : ''}
-              />
-            </div>
             {productionType.toLowerCase() === 'group' && (
               <div className="space-y-2">
                 <Label>Net Production</Label>
