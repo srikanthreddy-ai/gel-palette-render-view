@@ -397,19 +397,12 @@ const ProductionIncentiveEntry = () => {
       return 0;
     }
 
-    let extraNorms = 0;
+    // For customer incentive, calculate extraNorms = Net Production - customer Target Norms
+    const netProduction = parseFloat(producedQty.toString()) || 0;
+    const customerTargetNorms = individualTarget; // Customer target norms is the individual target
+    const extraNorms = netProduction - customerTargetNorms;
     
-    if (productionType.toLowerCase() === 'group') {
-      // For group production, calculate extraNorms = Net Production - Target Norms
-      const netProduction = parseFloat(producedQty.toString()) || 0;
-      const targetNorms = getTargetNormsValue();
-      extraNorms = netProduction - targetNorms;
-      console.log('Group production - Net Production:', netProduction, 'Target Norms:', targetNorms);
-    } else {
-      // For individual production, calculate extraNorms = Produced Qty - Individual Target  
-      extraNorms = producedQty - individualTarget;
-    }
-    
+    console.log('Customer incentive - Net Production:', netProduction, 'Customer Target Norms:', customerTargetNorms);
     console.log('Extra norms:', extraNorms);
 
     // If extraNorms is less than or equal to 0, no incentive
