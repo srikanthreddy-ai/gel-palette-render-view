@@ -479,9 +479,6 @@ const ProductionIncentiveEntry = () => {
         setEmployeeNorms(Math.round(calculatedEmployeeNorms).toString());
       }
     }
-
-    // Update incentives for all selected customers (preserve manual changes)
-    updateNewCustomerIncentives();
   };
 
   const handleWorkedHrsChange = (value: string) => {
@@ -504,9 +501,6 @@ const ProductionIncentiveEntry = () => {
         setEmployeeNorms(Math.round(calculatedEmployeeNorms).toString());
       }
     }
-
-    // Update incentives for all selected customers (preserve manual changes)
-    updateNewCustomerIncentives();
   };
 
   const updateAllCustomerIncentives = () => {
@@ -526,28 +520,6 @@ const ProductionIncentiveEntry = () => {
     }, 0);
   };
 
-  const updateNewCustomerIncentives = () => {
-    // Update incentives and individual targets for all customers
-    setTimeout(() => {
-      setSelectedCustomers(prev => 
-        prev.map(customer => {
-          // Recalculate individual target based on customer's worked hours
-          const newIndividualTarget = productionType.toLowerCase() === 'group' 
-            ? calculateIndividualTargetNorms(customer.workedHrs)
-            : parseInt(employeeNorms) || 0;
-          
-          // Recalculate incentive based on new individual target and produced qty
-          const newIncentive = calculateCustomerIncentive(newIndividualTarget, customer.producedQty);
-          
-          return {
-            ...customer,
-            incentive: newIncentive,
-            individualTarget: newIndividualTarget
-          };
-        })
-      );
-    }, 0);
-  };
 
   const handleCustomerSearchChange = (value: string) => {
     setCustomerSearch(value);
