@@ -15,6 +15,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import NormsForm from '@/components/NormsForm';
@@ -47,9 +56,12 @@ const NormsManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingNorm, setEditingNorm] = useState<ProductionNature | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const { toast } = useToast();
 
-  const fetchNormsData = async () => {
+  const fetchNormsData = async (page = 1) => {
     setIsLoading(true);
     console.log('Fetching norms data...');
     
@@ -57,7 +69,7 @@ const NormsManagement = () => {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Auth token:', authToken ? 'Present' : 'Missing');
       
-      const response = await fetch('https://pel-gel-backend.onrender.com/v1/api/ProductionNature', {
+      const response = await fetch(`https://pel-gel-backend.onrender.com/v1/api/ProductionNature?page=${page}&limit=10`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -71,6 +83,9 @@ const NormsManagement = () => {
         console.log('Response data:', data);
         // Filter out deleted norms
         setNormsData(data.data?.filter((norm: ProductionNature) => !norm.isDeleted) || []);
+        setTotalPages(data.totalPages || 1);
+        setTotalItems(data.totalItems || 0);
+        setCurrentPage(data.currentPage || 1);
       } else {
         console.error('API Error:', response.status, response.statusText);
         toast({
@@ -108,7 +123,12 @@ const NormsManagement = () => {
   const handleNormSaved = () => {
     setIsDialogOpen(false);
     setEditingNorm(null);
-    fetchNormsData();
+    fetchNormsData(currentPage);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchNormsData(page);
   };
 
   const handleCancel = () => {
@@ -166,7 +186,7 @@ const NormsManagement = () => {
                 ) : (
                   normsData.map((norm, index) => (
                     <TableRow key={norm._id} className={index % 2 === 1 ? "bg-red-50" : ""}>
-                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell className="font-medium">{(currentPage - 1) * 10 + index + 1}</TableCell>
                       <TableCell className="font-medium">{norm.building_id?.buildingName || 'N/A'}</TableCell>
                       <TableCell>{norm.productionNature}</TableCell>
                       <TableCell>{norm.productionType}</TableCell>
@@ -188,6 +208,52 @@ const NormsManagement = () => {
               </TableBody>
             </Table>
           </div>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-4 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage > 1) handlePageChange(currentPage - 1);
+                      }}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(page);
+                        }}
+                        isActive={currentPage === page}
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                      }}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
 
