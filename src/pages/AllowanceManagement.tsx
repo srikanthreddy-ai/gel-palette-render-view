@@ -15,6 +15,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import AllowanceForm from '@/components/AllowanceForm';
@@ -32,17 +41,22 @@ const AllowanceManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAllowance, setEditingAllowance] = useState<Allowance | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const { toast } = useToast();
+  
+  const ITEMS_PER_PAGE = 10;
 
-  const fetchAllowances = async () => {
+  const fetchAllowances = async (page: number = currentPage) => {
     setIsLoading(true);
-    console.log('Fetching allowances data...');
+    console.log('Fetching allowances data for page:', page);
     
     try {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Auth token:', authToken ? 'Present' : 'Missing');
       
-      const response = await fetch('https://pel-gel-backend.onrender.com/v1/api/getAllowences', {
+      const response = await fetch(`https://pel-gel-backend.onrender.com/v1/api/getAllowences?page=${page}&limit=${ITEMS_PER_PAGE}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -55,7 +69,11 @@ const AllowanceManagement = () => {
         const data = await response.json();
         console.log('Response data:', data);
         // Filter out deleted allowances
-        setAllowances(data.data?.filter((allowance: Allowance) => !allowance.isDeleted) || []);
+        const filteredAllowances = data.data?.filter((allowance: Allowance) => !allowance.isDeleted) || [];
+        setAllowances(filteredAllowances);
+        setCurrentPage(data.currentPage || 1);
+        setTotalPages(data.totalPages || 1);
+        setTotalItems(data.totalItems || 0);
       } else {
         console.error('API Error:', response.status, response.statusText);
         toast({
@@ -93,7 +111,112 @@ const AllowanceManagement = () => {
   const handleAllowanceSaved = () => {
     setIsDialogOpen(false);
     setEditingAllowance(null);
-    fetchAllowances();
+    fetchAllowances(currentPage);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchAllowances(page);
+  };
+
+  const renderPaginationItems = () => {
+    const items = [];
+    const showEllipsis = totalPages > 7;
+    
+    if (showEllipsis) {
+      // Always show first page
+      items.push(
+        <PaginationItem key={1}>
+          <PaginationLink
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handlePageChange(1);
+            }}
+            isActive={currentPage === 1}
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+
+      // Show ellipsis if current page is far from start
+      if (currentPage > 4) {
+        items.push(
+          <PaginationItem key="ellipsis-start">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+
+      // Show pages around current page
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      
+      for (let i = start; i <= end; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(i);
+              }}
+              isActive={currentPage === i}
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+
+      // Show ellipsis if current page is far from end
+      if (currentPage < totalPages - 3) {
+        items.push(
+          <PaginationItem key="ellipsis-end">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+
+      // Always show last page
+      if (totalPages > 1) {
+        items.push(
+          <PaginationItem key={totalPages}>
+            <PaginationLink
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(totalPages);
+              }}
+              isActive={currentPage === totalPages}
+            >
+              {totalPages}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    } else {
+      // Show all pages if total pages <= 7
+      for (let i = 1; i <= totalPages; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(i);
+              }}
+              isActive={currentPage === i}
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    }
+
+    return items;
   };
 
   return (
@@ -134,7 +257,7 @@ const AllowanceManagement = () => {
                 ) : (
                   allowances.map((allowance, index) => (
                     <TableRow key={allowance._id} className={index % 2 === 1 ? "bg-red-50" : ""}>
-                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell className="font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</TableCell>
                       <TableCell className="font-medium">{allowance.allowence}</TableCell>
                       <TableCell>{allowance.shift}</TableCell>
                       <TableCell>{allowance.amount}</TableCell>
@@ -154,6 +277,38 @@ const AllowanceManagement = () => {
               </TableBody>
             </Table>
           </div>
+          
+          {totalPages > 1 && (
+            <div className="mt-4 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage > 1) handlePageChange(currentPage - 1);
+                      }}
+                      className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                  
+                  {renderPaginationItems()}
+                  
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                      }}
+                      className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
 
