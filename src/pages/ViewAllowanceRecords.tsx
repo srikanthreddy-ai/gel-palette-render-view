@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/components/ui/use-toast';
 import { Calendar, Search } from 'lucide-react';
+import { API_ENDPOINTS } from '@/config/api';
 
 interface AllowanceRecord {
   _id: string;
@@ -46,15 +47,77 @@ interface IncentiveRecord {
   norms: number;
 }
 
+interface Building {
+  _id: string;
+  buildingName: string;
+  buildingCode: string;
+}
+
+interface Shift {
+  _id: string;
+  shiftName: string;
+  shiftHrs: number;
+  startTime: string;
+  endTime: string;
+}
+
 type Record = AllowanceRecord | IncentiveRecord;
 
 const ViewAllowanceRecords = () => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [recordType, setRecordType] = useState<'allowance' | 'incentive'>('allowance');
+  const [selectedBuilding, setSelectedBuilding] = useState('');
+  const [selectedShift, setSelectedShift] = useState('');
+  const [buildings, setBuildings] = useState<Building[]>([]);
+  const [shifts, setShifts] = useState<Shift[]>([]);
   const [records, setRecords] = useState<Record[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Fetch buildings and shifts on component mount
+  useEffect(() => {
+    fetchBuildings();
+    fetchShifts();
+  }, []);
+
+  const fetchBuildings = async () => {
+    try {
+      const authToken = sessionStorage.getItem('authToken');
+      const response = await fetch(API_ENDPOINTS.PRODUCTION_DEPT, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setBuildings(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching buildings:', error);
+    }
+  };
+
+  const fetchShifts = async () => {
+    try {
+      const authToken = sessionStorage.getItem('authToken');
+      const response = await fetch(API_ENDPOINTS.PRODUCTION_SHIFT, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setShifts(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching shifts:', error);
+    }
+  };
 
   const handleSearch = async () => {
     if (!fromDate || !toDate) {
@@ -179,7 +242,7 @@ const ViewAllowanceRecords = () => {
         </CardHeader>
         <CardContent>
           {/* Filter Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
             <div>
               <Label htmlFor="recordType">Record Type</Label>
               <Select value={recordType} onValueChange={(value: 'allowance' | 'incentive') => setRecordType(value)}>
@@ -211,6 +274,38 @@ const ViewAllowanceRecords = () => {
                 onChange={(e) => setToDate(e.target.value)}
                 className="mt-2"
               />
+            </div>
+            <div>
+              <Label htmlFor="building">Building</Label>
+              <Select value={selectedBuilding} onValueChange={setSelectedBuilding}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select building" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Buildings</SelectItem>
+                  {buildings.map((building) => (
+                    <SelectItem key={building._id} value={building._id}>
+                      {building.buildingName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="shift">Shift</Label>
+              <Select value={selectedShift} onValueChange={setSelectedShift}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select shift" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Shifts</SelectItem>
+                  {shifts.map((shift) => (
+                    <SelectItem key={shift._id} value={shift._id}>
+                      {shift.shiftName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex items-end">
               <Button 
