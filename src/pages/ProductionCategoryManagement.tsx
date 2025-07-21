@@ -151,23 +151,21 @@ const ProductionCategoryManagement = () => {
               <TableHeader>
                 <TableRow className="bg-gray-800 text-white">
                   <TableHead className="text-white font-bold">#</TableHead>
-                  <TableHead className="text-white font-bold">Building Code</TableHead>
                   <TableHead className="text-white font-bold">Building Name</TableHead>
                   <TableHead className="text-white font-bold">Description</TableHead>
-                  <TableHead className="text-white font-bold">Start/End Date</TableHead>
                   <TableHead className="text-white font-bold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={4} className="text-center py-8">
                       Loading buildings...
                     </TableCell>
                   </TableRow>
                 ) : buildings.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={4} className="text-center py-8">
                       No buildings found
                     </TableCell>
                   </TableRow>
@@ -175,12 +173,8 @@ const ProductionCategoryManagement = () => {
                   buildings.map((building, index) => (
                     <TableRow key={building._id} className={index % 2 === 1 ? "bg-red-50" : ""}>
                       <TableCell className="font-medium">{(currentPage - 1) * 10 + index + 1}</TableCell>
-                      <TableCell className="font-medium">{building.buildingCode}</TableCell>
                       <TableCell>{building.buildingName}</TableCell>
                       <TableCell>{building.description}</TableCell>
-                      <TableCell>
-                        {formatDate(building.startDate)} - {formatDate(building.endDate)}
-                      </TableCell>
                       <TableCell>
                         <Button
                           size="sm"
