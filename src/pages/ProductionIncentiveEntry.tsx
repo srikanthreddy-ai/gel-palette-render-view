@@ -421,13 +421,14 @@ const ProductionIncentiveEntry = () => {
 
     console.log('Selected nature incentives:', selectedNatureData.incentives);
 
-    // Find the appropriate incentive tier based on extraNorms
-    const incentiveTiers = selectedNatureData.incentives;
+    // Sort incentive tiers by min value to ensure proper order
+    const incentiveTiers = [...selectedNatureData.incentives].sort((a, b) => a.min - b.min);
+    
+    // Find the tier that contains the extraNorms
     let applicableTier = null;
-
     console.log('Checking tiers for extraNorms:', extraNorms);
     for (const tier of incentiveTiers) {
-      console.log(`Checking tier: min=${tier.min}, max=${tier.max}, amount=${tier.amount}, each=${tier.each}`);
+      console.log(`Checking tier: min=${tier.min}, max=${tier.max}, amount=${tier.amount}, each=${tier.each}, additionalValues=${tier.additionalValues}`);
       if (extraNorms >= tier.min && (tier.max === null || extraNorms <= tier.max)) {
         applicableTier = tier;
         console.log('Found applicable tier:', tier);
@@ -441,17 +442,58 @@ const ProductionIncentiveEntry = () => {
       return 0;
     }
 
-    // Calculate incentiveAmount = (extraNorms / each) * amount
-    const incentiveAmount = (extraNorms / applicableTier.each) * applicableTier.amount;
+    let totalIncentiveAmount = 0;
+
+    // If additionalValues is false, calculate cascading tiers
+    if (!applicableTier.additionalValues) {
+      console.log('additionalValues is false, calculating cascading tiers');
+      let remainingNorms = extraNorms;
+
+      for (const tier of incentiveTiers) {
+        // Stop when we reach the applicable tier
+        if (tier.min > applicableTier.min) break;
+        
+        // Skip invalid tiers
+        if (tier.amount === null || tier.each === null) continue;
+
+        const tierMin = tier.min;
+        const tierMax = tier.max;
+        
+        // Calculate the portion of norms that fall within this tier
+        let tierNorms = 0;
+        
+        if (tierMax === null) {
+          // This is the highest tier, use all remaining norms
+          tierNorms = remainingNorms;
+        } else {
+          // Calculate how much of this tier range is used
+          const tierRangeUsed = Math.min(extraNorms, tierMax) - tierMin + 1;
+          tierNorms = Math.min(remainingNorms, tierRangeUsed);
+        }
+
+        if (tierNorms > 0) {
+          const tierIncentive = (tierNorms / tier.each) * tier.amount;
+          totalIncentiveAmount += tierIncentive;
+          
+          console.log(`Tier ${tier.min}-${tier.max}: norms=${tierNorms}, incentive=${tierIncentive}`);
+          
+          remainingNorms -= tierNorms;
+          if (remainingNorms <= 0) break;
+        }
+      }
+    } else {
+      // If additionalValues is true, use only the applicable tier
+      console.log('additionalValues is true, using single tier calculation');
+      totalIncentiveAmount = (extraNorms / applicableTier.each) * applicableTier.amount;
+    }
 
     console.log('Customer Calculation:', {
       extraNorms,
-      each: applicableTier.each,
-      amount: applicableTier.amount,
-      incentiveAmount
+      additionalValues: applicableTier.additionalValues,
+      totalIncentiveAmount
     });
 
-    return parseFloat(incentiveAmount.toFixed(2));
+    return parseFloat(totalIncentiveAmount.toFixed(2));
   };
 
   const calculateIncentiveAmount = () => {
