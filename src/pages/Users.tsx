@@ -88,12 +88,16 @@ const Users = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Response data:', data);
+        console.log('Users array from data.data:', data.data);
+        console.log('Users array length:', data.data?.length);
         
         // Update state with the correct data structure
         setUsers(data.data || []);
         setTotalPages(data.totalPages || 1);
         setTotalItems(data.totalItems || 0);
         setCurrentPage(data.currentPage || 1);
+        
+        console.log('Users state after setting:', data.data);
       } else {
         console.error('API Error:', response.status, response.statusText);
         toast({
