@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Search, Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import AddEditEmployeeForm from '@/components/AddEditEmployeeForm';
@@ -36,19 +37,24 @@ const StaffManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 10;
   const { toast } = useToast();
 
-  const fetchEmployees = async (empCode?: string) => {
+  const fetchEmployees = async (page: number = 1, empCode?: string) => {
     setIsLoading(true);
-    console.log('Fetching employees...', empCode ? `with empCode: ${empCode}` : 'all employees');
+    console.log('Fetching employees...', empCode ? `with empCode: ${empCode}` : 'all employees', `page: ${page}`);
     
     try {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Auth token:', authToken ? 'Present' : 'Missing');
       
-      const url = empCode 
-        ? `https://pel-gel-backend.onrender.com/v1/api/employeesList?empCode=${empCode}`
-        : 'https://pel-gel-backend.onrender.com/v1/api/employeesList';
+      let url = `https://pel-gel-backend.onrender.com/v1/api/employeesList?page=${page}&limit=${itemsPerPage}`;
+      if (empCode) {
+        url += `&empCode=${empCode}`;
+      }
       
       console.log('API URL:', url);
       
@@ -65,6 +71,9 @@ const StaffManagement = () => {
         const data = await response.json();
         console.log('Response data:', data);
         setEmployees(data.data || []);
+        setTotalPages(data.totalPages || 1);
+        setTotalItems(data.totalItems || 0);
+        setCurrentPage(data.currentPage || 1);
       } else {
         console.error('API Error:', response.status, response.statusText);
         toast({
@@ -90,7 +99,8 @@ const StaffManagement = () => {
   }, []);
 
   const handleSearch = () => {
-    fetchEmployees(searchCode);
+    setCurrentPage(1);
+    fetchEmployees(1, searchCode);
   };
 
   const handleAddEmployee = () => {
@@ -106,7 +116,7 @@ const StaffManagement = () => {
   const handleEmployeeSaved = () => {
     setIsDialogOpen(false);
     setEditingEmployee(null);
-    fetchEmployees();
+    fetchEmployees(currentPage);
   };
 
   const handleCancel = () => {
@@ -168,7 +178,7 @@ const StaffManagement = () => {
                 ) : (
                   employees.map((employee, index) => (
                     <TableRow key={employee._id || index}>
-                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
                       <TableCell>{employee.empCode}</TableCell>
                       <TableCell>{employee.fullName}</TableCell>
                       <TableCell>{employee.designation}</TableCell>
@@ -189,6 +199,56 @@ const StaffManagement = () => {
               </TableBody>
             </Table>
           </div>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-4 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => {
+                        if (currentPage > 1) {
+                          const newPage = currentPage - 1;
+                          setCurrentPage(newPage);
+                          fetchEmployees(newPage, searchCode);
+                        }
+                      }}
+                      className={currentPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => {
+                          setCurrentPage(page);
+                          fetchEmployees(page, searchCode);
+                        }}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => {
+                        if (currentPage < totalPages) {
+                          const newPage = currentPage + 1;
+                          setCurrentPage(newPage);
+                          fetchEmployees(newPage, searchCode);
+                        }
+                      }}
+                      className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
 
