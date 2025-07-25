@@ -11,6 +11,7 @@ import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { Edit, UserPlus } from 'lucide-react';
 import { API_ENDPOINTS } from '@/config/api';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 interface User {
   _id: string;
@@ -36,6 +37,10 @@ const Users = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 10;
 
   const form = useForm({
     defaultValues: {
@@ -60,7 +65,7 @@ const Users = () => {
 
   const roles = ['admin', 'manager', 'hr', 'supervisor'];
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (page: number = 1) => {
     setIsLoading(true);
     console.log('Fetching users from API...');
     
@@ -68,9 +73,10 @@ const Users = () => {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Auth token:', authToken ? 'Present' : 'Missing');
       
-      console.log('API URL:', API_ENDPOINTS.USERS_LIST);
+      const url = `${API_ENDPOINTS.USERS_LIST}?page=${page}&limit=${itemsPerPage}`;
+      console.log('API URL:', url);
       
-      const response = await fetch(API_ENDPOINTS.USERS_LIST, {
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -82,7 +88,12 @@ const Users = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Response data:', data);
-        setUsers(Array.isArray(data) ? data : []);
+        
+        // Update state with the correct data structure
+        setUsers(data.data || []);
+        setTotalPages(data.totalPages || 1);
+        setTotalItems(data.totalItems || 0);
+        setCurrentPage(data.currentPage || 1);
       } else {
         console.error('API Error:', response.status, response.statusText);
         toast({
@@ -109,7 +120,7 @@ const Users = () => {
       setRolePermissions(JSON.parse(storedPermissions));
     }
 
-    fetchUsers();
+    fetchUsers(1);
   }, []);
 
   const handleRoleChange = (role: string) => {
@@ -154,7 +165,7 @@ const Users = () => {
           title: "User created",
           description: "New user has been created successfully.",
         });
-        fetchUsers();
+        fetchUsers(currentPage);
         return true;
       } else {
         const errorData = await response.json();
@@ -212,7 +223,7 @@ const Users = () => {
           title: "User updated",
           description: "User has been updated successfully.",
         });
-        fetchUsers();
+        fetchUsers(currentPage);
         return true;
       } else {
         const errorData = await response.json();
@@ -459,6 +470,56 @@ const Users = () => {
               )}
             </TableBody>
           </Table>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-4 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => {
+                        if (currentPage > 1) {
+                          const newPage = currentPage - 1;
+                          setCurrentPage(newPage);
+                          fetchUsers(newPage);
+                        }
+                      }}
+                      className={currentPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => {
+                          setCurrentPage(page);
+                          fetchUsers(page);
+                        }}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => {
+                        if (currentPage < totalPages) {
+                          const newPage = currentPage + 1;
+                          setCurrentPage(newPage);
+                          fetchUsers(newPage);
+                        }
+                      }}
+                      className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
