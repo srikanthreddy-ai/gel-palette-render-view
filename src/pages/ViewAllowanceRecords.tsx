@@ -282,7 +282,7 @@ const ViewAllowanceRecords = () => {
                   <SelectValue placeholder="Select building" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Buildings</SelectItem>
+                  <SelectItem value="all">All Buildings</SelectItem>
                   {buildings.map((building) => (
                     <SelectItem key={building._id} value={building._id}>
                       {building.buildingName}
@@ -298,7 +298,7 @@ const ViewAllowanceRecords = () => {
                   <SelectValue placeholder="Select shift" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Shifts</SelectItem>
+                  <SelectItem value="all">All Shifts</SelectItem>
                   {shifts.map((shift) => (
                     <SelectItem key={shift._id} value={shift._id}>
                       {shift.shiftName}
