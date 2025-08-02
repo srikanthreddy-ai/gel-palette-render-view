@@ -579,16 +579,7 @@ const ProductionIncentiveEntry = () => {
       return;
     }
 
-    // Check if manpower limit is reached
-    const manpowerLimit = parseInt(manpower) || 0;
-    if (selectedCustomers.length >= manpowerLimit) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: `Cannot add more customers. Maximum limit is ${manpowerLimit} (Manpower)`,
-      });
-      return;
-    }
+    // No manpower limit check - allow unlimited customer selection
 
     // Calculate individual target for the new customer
     const customerWorkedHrs = parseFloat(workedHrs) || 0;
