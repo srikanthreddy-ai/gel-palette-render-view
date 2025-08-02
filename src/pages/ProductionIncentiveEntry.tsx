@@ -657,22 +657,11 @@ const ProductionIncentiveEntry = () => {
   };
 
   const handleSubmit = async () => {
-    if (!productionDate || !selectedBuilding || !selectedNature || !selectedShift || selectedCustomers.length === 0) {
+    if (!productionDate || !selectedBuilding || !selectedNature || !selectedShift) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Please fill all required fields and add at least one customer",
-      });
-      return;
-    }
-
-    // Check if selected customers count matches manpower
-    const manpowerLimit = parseInt(manpower) || 0;
-    if (selectedCustomers.length !== manpowerLimit) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: `Number of selected customers (${selectedCustomers.length}) must match the manpower requirement (${manpowerLimit})`,
+        description: "Please fill all required fields",
       });
       return;
     }
