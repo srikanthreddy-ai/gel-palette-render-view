@@ -408,12 +408,10 @@ const ProductionIncentiveEntry = () => {
       return 0;
     }
 
-    // For customer incentive calculation, recalculate target using worked hours instead of production hours
-    const perHeadHour = calculatePerHeadHour();
-    const currentManpower = parseInt(manpower) || 1;
-    const customerTargetNorms = Math.round(perHeadHour * currentManpower * customerWorkedHrs);
-    
+    // For customer incentive calculation, use the original individual target (calculated with production hours)
+    // Extra Norms = Net Production - Target Norms (individual target)
     const netProduction = parseFloat(producedQty.toString()) || 0;
+    const customerTargetNorms = individualTarget; // Use the original target calculated with production hours
     const extraNorms = netProduction - customerTargetNorms;
     
     console.log('Customer incentive - Net Production:', netProduction, 'Customer Target Norms:', customerTargetNorms);
