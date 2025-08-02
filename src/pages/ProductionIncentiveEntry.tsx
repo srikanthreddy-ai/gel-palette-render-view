@@ -381,8 +381,18 @@ const ProductionIncentiveEntry = () => {
   const calculateIndividualTargetNorms = (customerWorkedHrs: number) => {
     const perHeadHour = calculatePerHeadHour();
     const currentManpower = parseInt(manpower) || 1;
-    // Individual Target = PerHead Hour * ManPower * worked hours
-    return Math.round(perHeadHour * currentManpower * customerWorkedHrs);
+    const productionHrs = originalShiftHrs; // Always use Production Hrs from shift selection
+    
+    // Individual Target = Per Head Hour * Man Power * Production Hrs (not worked hrs)
+    const individualTarget = perHeadHour * currentManpower * productionHrs;
+    
+    console.log('=== Individual Target Calculation ===');
+    console.log('Per Head Hour:', perHeadHour);
+    console.log('Man Power:', currentManpower);
+    console.log('Production Hrs:', productionHrs);
+    console.log('Individual Target:', individualTarget);
+    
+    return Math.round(individualTarget);
   };
 
   const calculateCustomerIncentive = (individualTarget: number, producedQty: number) => {
@@ -547,7 +557,6 @@ const ProductionIncentiveEntry = () => {
     }, 0);
   };
 
-
   const handleCustomerSearchChange = (value: string) => {
     setCustomerSearch(value);
     searchEmployees(value);
@@ -566,11 +575,8 @@ const ProductionIncentiveEntry = () => {
 
     // No manpower limit check - allow unlimited customer selection
 
-    // Calculate individual target for the new customer
-    const customerWorkedHrs = parseFloat(workedHrs) || 0;
-    const individualTargetValue = productionType.toLowerCase() === 'group' 
-      ? calculateIndividualTargetNorms(customerWorkedHrs)
-      : parseInt(employeeNorms) || 0;
+    // Calculate individual target using Production Hrs (not worked hrs)
+    const individualTargetValue = calculateIndividualTargetNorms(0); // Pass 0 as it's not used in the calculation
     
     // Get actual produced quantity from Net Production input
     const actualProducedQty = parseFloat(producedQty) || 0;
@@ -582,7 +588,7 @@ const ProductionIncentiveEntry = () => {
       empCode: employee.empCode,
       individualTarget: individualTargetValue,
       producedQty: actualProducedQty,
-      workedHrs: customerWorkedHrs,
+      workedHrs: parseFloat(workedHrs) || 0,
       incentive: calculatedIncentive
     };
 
@@ -601,13 +607,13 @@ const ProductionIncentiveEntry = () => {
         if (customer.empCode === empCode) {
           const updatedCustomer = { ...customer, [field]: value };
           
-          // If worked hours changed, recalculate individual target and incentive
-          if (field === 'workedHrs' && productionType.toLowerCase() === 'group') {
-            const newIndividualTarget = calculateIndividualTargetNorms(value);
-            const newIncentive = calculateCustomerIncentive(newIndividualTarget, updatedCustomer.producedQty);
+          // Individual target should NOT change when worked hours change
+          // It should always be based on Production Hrs
+          if (field === 'workedHrs') {
+            // Only update worked hours, keep individual target the same
+            const newIncentive = calculateCustomerIncentive(customer.individualTarget, updatedCustomer.producedQty);
             return {
               ...updatedCustomer,
-              individualTarget: newIndividualTarget,
               incentive: newIncentive
             };
           }
@@ -930,7 +936,6 @@ const ProductionIncentiveEntry = () => {
               </div>
             )}
           </div>
-
 
           {/* Search Customer */}
           <div className="space-y-2 mb-6">
