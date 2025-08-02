@@ -346,13 +346,18 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         </div>
         <div>
           <Label htmlFor="productionType">Production Type</Label>
-          <Input
-            id="productionType"
-            name="productionType"
-            value={formData.productionType}
-            onChange={handleInputChange}
-            required
-          />
+          <Select 
+            value={formData.productionType} 
+            onValueChange={(value) => setFormData(prev => ({ ...prev, productionType: value }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select production type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="group">Group</SelectItem>
+              <SelectItem value="individual">Individual</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
