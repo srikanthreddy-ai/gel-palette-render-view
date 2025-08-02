@@ -395,10 +395,11 @@ const ProductionIncentiveEntry = () => {
     return Math.round(individualTarget);
   };
 
-  const calculateCustomerIncentive = (individualTarget: number, producedQty: number) => {
+  const calculateCustomerIncentive = (individualTarget: number, producedQty: number, customerWorkedHrs: number) => {
     console.log('=== Customer Incentive Calculation Debug ===');
     console.log('individualTarget:', individualTarget);
     console.log('producedQty:', producedQty);
+    console.log('customerWorkedHrs:', customerWorkedHrs);
     console.log('selectedNature:', selectedNature);
 
     // If any required values are missing, return 0
@@ -407,9 +408,12 @@ const ProductionIncentiveEntry = () => {
       return 0;
     }
 
-    // For customer incentive, calculate extraNorms = Net Production - customer Target Norms
+    // For customer incentive calculation, recalculate target using worked hours instead of production hours
+    const perHeadHour = calculatePerHeadHour();
+    const currentManpower = parseInt(manpower) || 1;
+    const customerTargetNorms = Math.round(perHeadHour * currentManpower * customerWorkedHrs);
+    
     const netProduction = parseFloat(producedQty.toString()) || 0;
-    const customerTargetNorms = individualTarget; // Customer target norms is the individual target
     const extraNorms = netProduction - customerTargetNorms;
     
     console.log('Customer incentive - Net Production:', netProduction, 'Customer Target Norms:', customerTargetNorms);
@@ -546,7 +550,7 @@ const ProductionIncentiveEntry = () => {
       const individualTargetValue = parseInt(employeeNorms) || 0;
       setSelectedCustomers(prev => 
         prev.map(customer => {
-          const calculatedIncentive = calculateCustomerIncentive(individualTargetValue, customer.producedQty);
+          const calculatedIncentive = calculateCustomerIncentive(individualTargetValue, customer.producedQty, customer.workedHrs);
           return {
             ...customer,
             incentive: calculatedIncentive,
@@ -580,7 +584,7 @@ const ProductionIncentiveEntry = () => {
     
     // Get actual produced quantity from Net Production input
     const actualProducedQty = parseFloat(producedQty) || 0;
-    const calculatedIncentive = calculateCustomerIncentive(individualTargetValue, actualProducedQty);
+    const calculatedIncentive = calculateCustomerIncentive(individualTargetValue, actualProducedQty, parseFloat(workedHrs) || 0);
 
     const newCustomer: SelectedCustomer = {
       id: employee._id,
@@ -611,7 +615,7 @@ const ProductionIncentiveEntry = () => {
           // It should always be based on Production Hrs
           if (field === 'workedHrs') {
             // Only update worked hours, keep individual target the same
-            const newIncentive = calculateCustomerIncentive(customer.individualTarget, updatedCustomer.producedQty);
+            const newIncentive = calculateCustomerIncentive(customer.individualTarget, updatedCustomer.producedQty, updatedCustomer.workedHrs);
             return {
               ...updatedCustomer,
               incentive: newIncentive
@@ -620,7 +624,7 @@ const ProductionIncentiveEntry = () => {
           
           // If produced qty changed, recalculate incentive
           if (field === 'producedQty') {
-            const newIncentive = calculateCustomerIncentive(updatedCustomer.individualTarget, value);
+            const newIncentive = calculateCustomerIncentive(updatedCustomer.individualTarget, value, updatedCustomer.workedHrs);
             return {
               ...updatedCustomer,
               incentive: newIncentive
