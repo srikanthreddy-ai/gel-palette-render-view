@@ -911,15 +911,17 @@ const ProductionIncentiveEntry = () => {
                 type="number"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Man power</Label>
-              <Input 
-                value={manpower} 
-                onChange={(e) => handleManpowerChange(e.target.value)}
-                type="number"
-                min="1"
-              />
-            </div>
+            {productionType.toLowerCase() !== 'individual' && (
+              <div className="space-y-2">
+                <Label>Man power</Label>
+                <Input 
+                  value={manpower} 
+                  onChange={(e) => handleManpowerChange(e.target.value)}
+                  type="number"
+                  min="1"
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Production Hrs</Label>
               <Input 
