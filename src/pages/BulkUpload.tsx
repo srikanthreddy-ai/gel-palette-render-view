@@ -69,6 +69,9 @@ const BulkUpload = () => {
       } else if (masterType === 'allowance') {
         uploadUrl = API_ENDPOINTS.ALLOWANCE_DATA_UPLOAD;
         successMessage = `Successfully uploaded ${selectedFile.name} for Allowance Master.`;
+      } else if (masterType === 'norms') {
+        uploadUrl = API_ENDPOINTS.NORMS_MASTER_UPLOAD;
+        successMessage = `Successfully uploaded ${selectedFile.name} for Norms Master.`;
       } else {
         // For other master types, show a placeholder message
         toast({

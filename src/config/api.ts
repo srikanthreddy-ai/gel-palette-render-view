@@ -20,4 +20,5 @@ export const API_ENDPOINTS = {
   USERS_LIST: `${API_CONFIG.BASE_URL}/usersList`,
   CREATE_USER: `${API_CONFIG.BASE_URL}/createUser`,
   UPDATE_USER: (id: string) => `${API_CONFIG.BASE_URL}/userUpdate/${id}`,
+  NORMS_MASTER_UPLOAD: `${API_CONFIG.BASE_URL}/NormsMasterUpload`,
 };
