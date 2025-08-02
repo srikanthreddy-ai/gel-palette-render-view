@@ -657,11 +657,11 @@ const ProductionIncentiveEntry = () => {
   };
 
   const handleSubmit = async () => {
-    if (!productionDate || !selectedBuilding || !selectedNature || !selectedShift || selectedCustomers.length === 0) {
+    if (!productionDate || !selectedBuilding || !selectedNature || !selectedShift) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Please fill all required fields and add at least one customer",
+        description: "Please fill all required fields",
       });
       return;
     }
