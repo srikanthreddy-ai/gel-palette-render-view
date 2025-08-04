@@ -20,7 +20,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/components/ui/use-toast';
-import { Calendar, Search } from 'lucide-react';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar, Search, CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { API_ENDPOINTS } from '@/config/api';
 
 interface AllowanceRecord {
@@ -64,8 +72,8 @@ interface Shift {
 type Record = AllowanceRecord | IncentiveRecord;
 
 const ViewAllowanceRecords = () => {
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const [fromDate, setFromDate] = useState<Date>();
+  const [toDate, setToDate] = useState<Date>();
   const [recordType, setRecordType] = useState<'allowance' | 'incentive'>('allowance');
   const [selectedBuilding, setSelectedBuilding] = useState('');
   const [selectedShift, setSelectedShift] = useState('');
@@ -129,7 +137,7 @@ const ViewAllowanceRecords = () => {
       return;
     }
 
-    if (new Date(fromDate) > new Date(toDate)) {
+    if (fromDate > toDate) {
       toast({
         variant: "destructive",
         title: "Validation Error",
@@ -139,17 +147,22 @@ const ViewAllowanceRecords = () => {
     }
 
     setIsLoading(true);
-    console.log(`Searching ${recordType} records from`, fromDate, 'to', toDate);
+    const fromDateStr = format(fromDate, 'yyyy-MM-dd');
+    const toDateStr = format(toDate, 'yyyy-MM-dd');
+    console.log(`Searching ${recordType} records from`, fromDateStr, 'to', toDateStr);
 
     try {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Auth token:', authToken ? 'Present' : 'Missing');
 
+      const fromDateStr = format(fromDate, 'yyyy-MM-dd');
+      const toDateStr = format(toDate, 'yyyy-MM-dd');
+      
       let endpoint = '';
       if (recordType === 'allowance') {
-        endpoint = `https://pel-gel-backend.onrender.com/v1/api/getEmpAllowences?fromDate=${fromDate}&toDate=${toDate}`;
+        endpoint = `https://pel-gel-backend.onrender.com/v1/api/getEmpAllowences?fromDate=${fromDateStr}&toDate=${toDateStr}`;
       } else {
-        endpoint = `https://pel-gel-backend.onrender.com/v1/api/getAllTimeSheets?fromDate=${fromDate}&toDate=${toDate}`;
+        endpoint = `https://pel-gel-backend.onrender.com/v1/api/getAllTimeSheets?fromDate=${fromDateStr}&toDate=${toDateStr}`;
       }
 
       const response = await fetch(endpoint, {
@@ -257,23 +270,55 @@ const ViewAllowanceRecords = () => {
             </div>
             <div>
               <Label htmlFor="fromDate">From Date</Label>
-              <Input
-                id="fromDate"
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                className="mt-2"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal mt-2",
+                      !fromDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {fromDate ? format(fromDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={fromDate}
+                    onSelect={setFromDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
               <Label htmlFor="toDate">To Date</Label>
-              <Input
-                id="toDate"
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                className="mt-2"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal mt-2",
+                      !toDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {toDate ? format(toDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={toDate}
+                    onSelect={setToDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
               <Label htmlFor="building">Building</Label>
