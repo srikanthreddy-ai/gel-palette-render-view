@@ -499,13 +499,22 @@ const ProductionIncentiveEntry = () => {
       totalIncentiveAmount = (extraNorms / applicableTier.each) * applicableTier.amount;
     }
 
+    // Apply proportional calculation based on worked hours vs production hours
+    const currentProductionHrs = originalShiftHrs || 8;
+    const workedHoursRatio = customerWorkedHrs / currentProductionHrs;
+    const proportionalIncentive = totalIncentiveAmount * workedHoursRatio;
+
     console.log('Customer Calculation:', {
       extraNorms,
       additionalValues: applicableTier.additionalValues,
-      totalIncentiveAmount
+      totalIncentiveAmount,
+      currentProductionHrs,
+      customerWorkedHrs,
+      workedHoursRatio,
+      proportionalIncentive
     });
 
-    return parseFloat(totalIncentiveAmount.toFixed(2));
+    return parseFloat(proportionalIncentive.toFixed(2));
   };
 
   const calculateIncentiveAmount = () => {
