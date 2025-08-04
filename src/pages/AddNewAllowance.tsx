@@ -386,14 +386,6 @@ const AddNewAllowance = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex space-x-4 border-b pb-4">
-        <div className="border-b-2 border-blue-600 pb-2">
-          <span className="text-blue-600 font-medium">NEW ALLOWANCE</span>
-        </div>
-        <div className="pb-2">
-          <span className="text-gray-500">VIEW ALLOWANCE</span>
-        </div>
-      </div>
 
       <Card>
         <CardHeader>
