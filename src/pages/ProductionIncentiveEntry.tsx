@@ -510,7 +510,7 @@ const ProductionIncentiveEntry = () => {
     let finalIncentive = totalIncentiveAmount;
     
     if (productionType.toLowerCase() === 'group') {
-      const currentProductionHrs = originalShiftHrs || 8;
+      const currentProductionHrs = parseFloat(workedHrs) || originalShiftHrs || 8;
       const workedHoursRatio = customerWorkedHrs / currentProductionHrs;
       finalIncentive = totalIncentiveAmount * workedHoursRatio;
     }
