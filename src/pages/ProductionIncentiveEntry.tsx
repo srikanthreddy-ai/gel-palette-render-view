@@ -908,9 +908,15 @@ const ProductionIncentiveEntry = () => {
               <Label>Default Norms</Label>
               <Input 
                 value={norms} 
-                readOnly
-                className="bg-gray-50"
+                readOnly={productionType.toLowerCase() !== 'individual'}
+                className={productionType.toLowerCase() === 'individual' ? "" : "bg-gray-50"}
                 type="number"
+                onChange={(e) => {
+                  if (productionType.toLowerCase() === 'individual') {
+                    setNorms(e.target.value);
+                    setEmployeeNorms(e.target.value);
+                  }
+                }}
               />
             </div>
             {productionType.toLowerCase() !== 'individual' && (
