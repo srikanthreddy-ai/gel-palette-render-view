@@ -620,13 +620,19 @@ const ProductionIncentiveEntry = () => {
         if (customer.empCode === empCode) {
           const updatedCustomer = { ...customer, [field]: value };
           
-          // Individual target should NOT change when worked hours change
-          // It should always be based on Production Hrs
+          // For individual production type, recalculate target when worked hours change
           if (field === 'workedHrs') {
-            // Only update worked hours, keep individual target the same
-            const newIncentive = calculateCustomerIncentive(customer.individualTarget, updatedCustomer.producedQty, updatedCustomer.workedHrs);
+            let newIndividualTarget = customer.individualTarget;
+            
+            if (productionType.toLowerCase() === 'individual') {
+              // Recalculate individual target: Default Norms/Production Hrs * Worked Hrs
+              newIndividualTarget = calculateIndividualTargetNorms(value);
+            }
+            
+            const newIncentive = calculateCustomerIncentive(newIndividualTarget, updatedCustomer.producedQty, value);
             return {
               ...updatedCustomer,
+              individualTarget: newIndividualTarget,
               incentive: newIncentive
             };
           }
