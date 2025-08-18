@@ -300,18 +300,16 @@ const ProductionIncentiveEntry = () => {
   };
 
   const calculatePerHeadHour = () => {
-    const selectedNatureData = getFilteredNatures().find(nature => nature._id === selectedNature);
-    const selectedShiftData = shifts.find(shift => shift._id === selectedShift);
+    if (!selectedNature || !selectedShift) return 0;
     
-    if (!selectedNatureData || !selectedShiftData) return 0;
+    // Use the editable Default Norms field value
+    const defaultNorms = parseFloat(norms) || 0;
+    const manPower = parseInt(manpower) || 1;
     
-    const defaultNorms = selectedNatureData.norms || 0;
-    const defaultManpower = selectedNatureData.manpower || 1;
+    // For group production type, use Production Hrs (worked hours)
+    const productionHrs = parseFloat(workedHrs) || 1;
     
-    // For group production type, use Production Hrs (worked hours) instead of default shift hours
-    const productionHrs = parseFloat(workedHrs) || selectedShiftData.shiftHrs || 8;
-    
-    const perHeadHour = defaultNorms / defaultManpower / productionHrs;
+    const perHeadHour = defaultNorms / manPower / productionHrs;
     return parseFloat(perHeadHour.toFixed(4));
   };
 
