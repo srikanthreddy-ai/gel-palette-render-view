@@ -585,8 +585,11 @@ const ProductionIncentiveEntry = () => {
 
     // No manpower limit check - allow unlimited customer selection
 
-    // Calculate individual target using Production Hrs (not worked hrs)
-    const individualTargetValue = calculateIndividualTargetNorms(0); // Pass 0 as it's not used in the calculation
+    // Calculate individual target based on customer's worked hours
+    const customerWorkedHrs = parseFloat(workedHrs) || 0;
+    const individualTargetValue = productionType.toLowerCase() === 'individual' 
+      ? calculateIndividualTargetNorms(customerWorkedHrs)
+      : calculateIndividualTargetNorms(0); // For group type, worked hrs not used
     
     // Get actual produced quantity from Net Production input
     const actualProducedQty = parseFloat(producedQty) || 0;
