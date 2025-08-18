@@ -315,16 +315,22 @@ const ProductionIncentiveEntry = () => {
     return parseFloat(perHeadHour.toFixed(4));
   };
 
-  const calculateTargetNormsForGroup = (productionHrs: number, inputManpower: number) => {
-    const perHeadHour = calculatePerHeadHour();
+  const calculateTargetNormsForGroup = (workedHrs: number, inputManpower: number) => {
+    const filteredNatures = getFilteredNatures();
+    const selectedNatureData = filteredNatures.find(nature => nature._id === selectedNature);
     
-    // Target Norms = perheadhour * production Hrs * manpower (from input)
-    const targetNorms = perHeadHour * productionHrs * inputManpower;
+    if (!selectedNatureData) return 0;
+    
+    const defaultNorms = selectedNatureData.norms || 0;
+    const productionHrs = parseFloat(workedHrs.toString()) || 1;
+    
+    // Target Norms = Default Norms / Production Hrs * Worked Hrs
+    const targetNorms = (defaultNorms / productionHrs) * workedHrs;
     
     console.log('=== Group Target Norms Calculation ===');
-    console.log('Per Head Hour:', perHeadHour);
+    console.log('Default Norms:', defaultNorms);
     console.log('Production Hrs:', productionHrs);
-    console.log('Input Manpower:', inputManpower);
+    console.log('Worked Hrs:', workedHrs);
     console.log('Calculated Target Norms:', targetNorms);
     
     return Math.round(targetNorms);
