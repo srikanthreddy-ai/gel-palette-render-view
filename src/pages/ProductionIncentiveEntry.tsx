@@ -932,13 +932,19 @@ const ProductionIncentiveEntry = () => {
               <Label>Default Norms</Label>
               <Input 
                 value={norms} 
-                readOnly={productionType.toLowerCase() !== 'individual'}
-                className={productionType.toLowerCase() === 'individual' ? "" : "bg-gray-50"}
                 type="number"
                 onChange={(e) => {
+                  setNorms(e.target.value);
+                  // Update employee norms for individual production type
                   if (productionType.toLowerCase() === 'individual') {
-                    setNorms(e.target.value);
                     setEmployeeNorms(e.target.value);
+                  }
+                  // For group production type, recalculate target norms
+                  if (productionType.toLowerCase() === 'group') {
+                    const currentWorkedHrs = parseFloat(workedHrs) || 1;
+                    const currentManpower = parseInt(manpower) || 1;
+                    const newTargetNorms = calculateTargetNormsForGroup(currentWorkedHrs, currentManpower);
+                    setEmployeeNorms(newTargetNorms.toString());
                   }
                 }}
               />
