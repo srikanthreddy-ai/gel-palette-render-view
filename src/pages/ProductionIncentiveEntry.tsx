@@ -307,9 +307,11 @@ const ProductionIncentiveEntry = () => {
     
     const defaultNorms = selectedNatureData.norms || 0;
     const defaultManpower = selectedNatureData.manpower || 1;
-    const defaultShiftHrs = selectedShiftData.shiftHrs || 8;
     
-    const perHeadHour = defaultNorms / defaultManpower / defaultShiftHrs;
+    // For group production type, use Production Hrs (worked hours) instead of default shift hours
+    const productionHrs = parseFloat(workedHrs) || selectedShiftData.shiftHrs || 8;
+    
+    const perHeadHour = defaultNorms / defaultManpower / productionHrs;
     return parseFloat(perHeadHour.toFixed(4));
   };
 
