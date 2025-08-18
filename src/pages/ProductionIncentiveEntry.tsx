@@ -379,17 +379,16 @@ const ProductionIncentiveEntry = () => {
   };
 
   const calculateIndividualTargetNorms = (customerWorkedHrs: number) => {
-    const perHeadHour = calculatePerHeadHour();
-    const currentManpower = parseInt(manpower) || 1;
+    const currentNorms = parseFloat(norms) || 0;
     const productionHrs = originalShiftHrs; // Always use Production Hrs from shift selection
     
-    // Individual Target = Per Head Hour * Man Power * Production Hrs (not worked hrs)
-    const individualTarget = perHeadHour * currentManpower * productionHrs;
+    // Individual Target = (Default Norms / Production Hrs) * Worked Hrs
+    const individualTarget = (currentNorms / productionHrs) * customerWorkedHrs;
     
     console.log('=== Individual Target Calculation ===');
-    console.log('Per Head Hour:', perHeadHour);
-    console.log('Man Power:', currentManpower);
+    console.log('Default Norms:', currentNorms);
     console.log('Production Hrs:', productionHrs);
+    console.log('Customer Worked Hrs:', customerWorkedHrs);
     console.log('Individual Target:', individualTarget);
     
     return Math.round(individualTarget);
