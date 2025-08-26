@@ -20,6 +20,7 @@ import { format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
+import { API_CONFIG } from '@/config/api';
 
 interface Employee {
   _id?: string;
@@ -121,8 +122,8 @@ const AddEditEmployeeForm: React.FC<AddEditEmployeeFormProps> = ({
     try {
       const authToken = sessionStorage.getItem('authToken');
       const url = employee?._id 
-        ? `https://pel-gel-backend.onrender.com/v1/api/employees/${employee._id}`
-        : 'https://pel-gel-backend.onrender.com/v1/api/employees';
+        ? `${API_CONFIG.BASE_URL}/employees/${employee._id}`
+        : `${API_CONFIG.BASE_URL}/employees`;
       
       const method = employee?._id ? 'PUT' : 'POST';
 

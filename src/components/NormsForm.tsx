@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
+import { API_CONFIG } from '@/config/api';
 import { Plus, Minus } from 'lucide-react';
 
 interface Building {
@@ -132,7 +133,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         return;
       }
 
-      const response = await fetch('https://pel-gel-backend.onrender.com/v1/api/ProductionDept', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/ProductionDept`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -257,8 +258,8 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
       };
 
       const url = norm 
-        ? `https://pel-gel-backend.onrender.com/v1/api/ProductionNature/${norm._id}`
-        : 'https://pel-gel-backend.onrender.com/v1/api/ProductionNature';
+        ? `${API_CONFIG.BASE_URL}/ProductionNature/${norm._id}`
+        : `${API_CONFIG.BASE_URL}/ProductionNature`;
       
       const method = norm ? 'PUT' : 'POST';
       

@@ -21,6 +21,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { Search, Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import AddEditEmployeeForm from '@/components/AddEditEmployeeForm';
+import { API_CONFIG } from '@/config/api';
 
 interface Employee {
   _id: string;
@@ -51,7 +52,7 @@ const StaffManagement = () => {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Auth token:', authToken ? 'Present' : 'Missing');
       
-      let url = `https://pel-gel-backend.onrender.com/v1/api/employeesList?page=${page}&limit=${itemsPerPage}`;
+      let url = `${API_CONFIG.BASE_URL}/employeesList?page=${page}&limit=${itemsPerPage}`;
       if (empCode) {
         url += `&empCode=${empCode}`;
       }

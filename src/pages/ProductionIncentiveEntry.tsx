@@ -135,7 +135,7 @@ const ProductionIncentiveEntry = () => {
   const itemsPerPage = 10;
   
   const { toast } = useToast();
-  const baseURL = 'https://pel-gel-backend.onrender.com/v1/api';
+  const baseURL = import.meta.env.VITE_API_BASE_URL;
 
   const fetchNatureAndBuildings = async () => {
     try {

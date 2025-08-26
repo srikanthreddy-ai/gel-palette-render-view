@@ -28,6 +28,7 @@ import {
 import { Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import BuildingForm from '@/components/BuildingForm';
+import { API_CONFIG } from '@/config/api';
 
 interface Building {
   _id: string;
@@ -58,7 +59,7 @@ const ProductionCategoryManagement = () => {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Auth token:', authToken ? 'Present' : 'Missing');
       
-      const response = await fetch(`https://pel-gel-backend.onrender.com/v1/api/ProductionDept?page=${page}&limit=10`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/ProductionDept?page=${page}&limit=10`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',

@@ -29,7 +29,7 @@ import {
 import { Calendar, Search, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { API_ENDPOINTS } from '@/config/api';
+import { API_ENDPOINTS, API_CONFIG } from '@/config/api';
 
 interface AllowanceRecord {
   _id: string;
@@ -160,9 +160,9 @@ const ViewAllowanceRecords = () => {
       
       let endpoint = '';
       if (recordType === 'allowance') {
-        endpoint = `https://pel-gel-backend.onrender.com/v1/api/getEmpAllowences?fromDate=${fromDateStr}&toDate=${toDateStr}`;
+        endpoint = `${API_CONFIG.BASE_URL}/getEmpAllowences?fromDate=${fromDateStr}&toDate=${toDateStr}`;
       } else {
-        endpoint = `https://pel-gel-backend.onrender.com/v1/api/getAllTimeSheets?fromDate=${fromDateStr}&toDate=${toDateStr}`;
+        endpoint = `${API_CONFIG.BASE_URL}/getAllTimeSheets?fromDate=${fromDateStr}&toDate=${toDateStr}`;
       }
 
       const response = await fetch(endpoint, {
