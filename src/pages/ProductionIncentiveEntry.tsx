@@ -28,6 +28,7 @@ import { format } from 'date-fns';
 import { Calendar as CalendarIcon, Search, Plus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
+import { API_CONFIG } from '@/config/api';
 import {
   Pagination,
   PaginationContent,
@@ -135,12 +136,11 @@ const ProductionIncentiveEntry = () => {
   const itemsPerPage = 10;
   
   const { toast } = useToast();
-  const baseURL = import.meta.env.VITE_API_BASE_URL;
 
   const fetchNatureAndBuildings = async () => {
     try {
       const authToken = sessionStorage.getItem('authToken');
-      const response = await fetch(`${baseURL}/getNatureListByCategory`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/getNatureListByCategory`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -204,7 +204,7 @@ const ProductionIncentiveEntry = () => {
   const fetchShifts = async () => {
     try {
       const authToken = sessionStorage.getItem('authToken');
-      const response = await fetch(`${baseURL}/ProductionShift`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/ProductionShift`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -242,7 +242,7 @@ const ProductionIncentiveEntry = () => {
     setSearchLoading(true);
     try {
       const authToken = sessionStorage.getItem('authToken');
-      const response = await fetch(`${baseURL}/employeesList?empCode=${query}`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/employeesList?empCode=${query}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -713,7 +713,7 @@ const ProductionIncentiveEntry = () => {
         console.log('Submitting timesheet for customer:', customer.customerName, payload);
 
         try {
-          const response = await fetch(`${baseURL}/createTimeSheet`, {
+          const response = await fetch(`${API_CONFIG.BASE_URL}/createTimeSheet`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${authToken}`,
