@@ -414,10 +414,19 @@ const ProductionIncentiveEntry = () => {
       return 0;
     }
 
-    // For customer incentive calculation, use the original individual target (calculated with production hours)
-    // Extra Norms = Net Production - Target Norms (individual target)
+    // For customer incentive calculation, calculate target norms based on production type
     const netProduction = parseFloat(producedQty.toString()) || 0;
-    const customerTargetNorms = individualTarget; // Use the original target calculated with production hours
+    let customerTargetNorms = individualTarget;
+    
+    // For group production type: Target Norms = perHeadHour * Current Man Power * Production Hrs
+    if (productionType.toLowerCase() === 'group') {
+      const perHeadHour = calculatePerHeadHour();
+      const currentManPower = parseInt(manpower) || 1;
+      const productionHrs = originalShiftHrs || 1;
+      customerTargetNorms = perHeadHour * currentManPower * productionHrs;
+      console.log('Group Customer Target Norms: perHeadHour:', perHeadHour, 'currentManPower:', currentManPower, 'productionHrs:', productionHrs, 'result:', customerTargetNorms);
+    }
+    
     const extraNorms = netProduction - customerTargetNorms;
     
     console.log('Customer incentive - Net Production:', netProduction, 'Customer Target Norms:', customerTargetNorms);
