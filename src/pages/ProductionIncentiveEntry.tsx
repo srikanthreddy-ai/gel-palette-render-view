@@ -1072,7 +1072,7 @@ const ProductionIncentiveEntry = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-16">#</TableHead>
-                    <TableHead>Customer Name</TableHead>
+                    <TableHead>Employee Name</TableHead>
                     <TableHead>Employee Code</TableHead>
                     <TableHead>Target Norms</TableHead>
                     {productionType.toLowerCase() !== 'group' && <TableHead>Produced Qty.</TableHead>}
