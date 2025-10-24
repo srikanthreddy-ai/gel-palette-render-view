@@ -140,7 +140,7 @@ const ProductionCategoryManagement = () => {
     <div className="p-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-2xl font-bold">Production Category Management</CardTitle>
+          <CardTitle className="text-2xl font-bold">Production Building Master</CardTitle>
           <Button onClick={handleAddBuilding} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="h-4 w-4 mr-2" />
             ADD
