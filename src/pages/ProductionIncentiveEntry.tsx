@@ -121,7 +121,6 @@ const ProductionIncentiveEntry = () => {
   const [originalNorms, setOriginalNorms] = useState(0); // Store original norms for calculation
   const [originalManpower, setOriginalManpower] = useState(1); // Store original manpower for calculation
   const [originalShiftHrs, setOriginalShiftHrs] = useState(1); // Store original shift hours for calculation
-  const [perHeadHour, setPerHeadHour] = useState<number>(0); // Per Head Hour for group production
   
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [buildings, setBuildings] = useState<NatureCategory[]>([]);
@@ -591,15 +590,6 @@ const ProductionIncentiveEntry = () => {
   const handleWorkedHrsChange = (value: string) => {
     setWorkedHrs(value);
     
-    // Calculate Per Head Hour for group production type
-    if (productionType.toLowerCase() === 'group') {
-      const productionHrs = parseFloat(value) || 1;
-      const defaultNorms = originalNorms || 0;
-      const defaultManpower = originalManpower || 1;
-      const calculatedPerHeadHour = defaultNorms / defaultManpower / productionHrs;
-      setPerHeadHour(calculatedPerHeadHour);
-    }
-    
     // Target Norms should not be updated when Worked Hrs changes
     // Target Norms should always be based on Production Hrs (shift hours) as set during shift selection
   };
@@ -961,6 +951,17 @@ const ProductionIncentiveEntry = () => {
               <Label>Production Type</Label>
               <Input value={productionType} readOnly className="bg-gray-50" />
             </div>
+            {productionType.toLowerCase() === 'group' && (
+              <div className="space-y-2">
+                <Label>Per Head Hour</Label>
+                <Input 
+                  value={calculatePerHeadHour()} 
+                  readOnly
+                  className="bg-gray-50"
+                  type="number"
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Default Norms</Label>
               <Input 
@@ -1006,26 +1007,16 @@ const ProductionIncentiveEntry = () => {
               />
             </div>
             {productionType.toLowerCase() === 'group' && (
-              <>
-                <div className="space-y-2">
-                  <Label>Per Head Hour</Label>
-                  <Input 
-                    value={perHeadHour.toFixed(2)} 
-                    readOnly
-                    className="bg-gray-50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Net Production</Label>
-                  <Input 
-                    value={producedQty} 
-                    onChange={(e) => setProducedQty(e.target.value)}
-                    type="number"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-              </>
+              <div className="space-y-2">
+                <Label>Net Production</Label>
+                <Input 
+                  value={producedQty} 
+                  onChange={(e) => setProducedQty(e.target.value)}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
             )}
           </div>
 
