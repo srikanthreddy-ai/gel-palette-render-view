@@ -322,17 +322,17 @@ const ProductionIncentiveEntry = () => {
   };
 
   const calculateTargetNormsForGroup = (workedHrs: number, inputManpower: number) => {
-    // Use the editable Default Norms field value instead of nature data
-    const defaultNorms = parseFloat(norms) || 0;
+    // Target Norms = Per Head Hour * Current Man power * Production hrs
+    const perHeadHour = calculatePerHeadHour();
+    const currentManPower = inputManpower || 1;
     const productionHrs = parseFloat(workedHrs.toString()) || 1;
     
-    // Target Norms = Default Norms / Production Hrs * Worked Hrs
-    const targetNorms = (defaultNorms / productionHrs) * workedHrs;
+    const targetNorms = perHeadHour * currentManPower * productionHrs;
     
     console.log('=== Group Target Norms Calculation ===');
-    console.log('Default Norms (from input field):', defaultNorms);
+    console.log('Per Head Hour:', perHeadHour);
+    console.log('Current Man Power:', currentManPower);
     console.log('Production Hrs:', productionHrs);
-    console.log('Worked Hrs:', workedHrs);
     console.log('Calculated Target Norms:', targetNorms);
     
     return Math.round(targetNorms);
