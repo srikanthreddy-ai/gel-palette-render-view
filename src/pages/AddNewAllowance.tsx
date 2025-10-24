@@ -512,9 +512,9 @@ const AddNewAllowance = () => {
             </div>
           </div>
 
-          {/* Search Customer */}
+          {/* Search Employee */}
           <div>
-            <Label>Search Customer</Label>
+            <Label>Search Employee</Label>
             <div className="flex space-x-2">
               <Input
                 placeholder="Search by employee code"

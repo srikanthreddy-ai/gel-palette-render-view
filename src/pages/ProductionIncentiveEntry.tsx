@@ -1020,9 +1020,9 @@ const ProductionIncentiveEntry = () => {
             )}
           </div>
 
-          {/* Search Customer */}
+          {/* Search Employee */}
           <div className="space-y-2 mb-6">
-            <Label>Search Customer</Label>
+            <Label>Search Employee</Label>
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
