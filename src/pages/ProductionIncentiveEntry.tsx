@@ -961,17 +961,6 @@ const ProductionIncentiveEntry = () => {
               <Label>Production Type</Label>
               <Input value={productionType} readOnly className="bg-gray-50" />
             </div>
-            {productionType.toLowerCase() === 'group' && (
-              <div className="space-y-2">
-                <Label>Per Head Hour</Label>
-                <Input 
-                  value={calculatePerHeadHour()} 
-                  readOnly
-                  className="bg-gray-50"
-                  type="number"
-                />
-              </div>
-            )}
             <div className="space-y-2">
               <Label>Default Norms</Label>
               <Input 
