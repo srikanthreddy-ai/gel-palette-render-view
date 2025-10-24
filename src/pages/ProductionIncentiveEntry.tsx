@@ -311,8 +311,8 @@ const ProductionIncentiveEntry = () => {
       ? originalManpower 
       : (parseInt(manpower) || 1);
     
-    // Always use shift hours for Per Head Hour calculation
-    const productionHrs = parseFloat(shiftHrs) || 1;
+    // Use current Production Hrs (workedHrs) for Per Head Hour calculation
+    const productionHrs = parseFloat(workedHrs) || parseFloat(shiftHrs) || 1;
     
     const perHeadHour = defaultNorms / manPower / productionHrs;
     return perHeadHour;
@@ -590,8 +590,13 @@ const ProductionIncentiveEntry = () => {
   const handleWorkedHrsChange = (value: string) => {
     setWorkedHrs(value);
     
-    // Target Norms should not be updated when Worked Hrs changes
-    // Target Norms should always be based on Production Hrs (shift hours) as set during shift selection
+    // For group production type, recalculate Target Norms when Production Hrs changes
+    if (productionType.toLowerCase() === 'group') {
+      const currentWorkedHrs = parseFloat(value) || 1;
+      const currentManpower = parseInt(manpower) || 1;
+      const newTargetNorms = calculateTargetNormsForGroup(currentWorkedHrs, currentManpower);
+      setEmployeeNorms(newTargetNorms.toString());
+    }
   };
 
   const updateAllCustomerIncentives = () => {
