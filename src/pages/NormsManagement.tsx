@@ -151,7 +151,7 @@ const NormsManagement = () => {
     <div className="p-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-2xl font-bold">Production Nature Management</CardTitle>
+          <CardTitle className="text-2xl font-bold">Production Norms Master</CardTitle>
           <Button onClick={handleAddNorm} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="h-4 w-4 mr-2" />
             ADD
