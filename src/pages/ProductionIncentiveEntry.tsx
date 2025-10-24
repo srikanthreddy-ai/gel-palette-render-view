@@ -318,7 +318,7 @@ const ProductionIncentiveEntry = () => {
       : (parseFloat(shiftHrs) || 1);
     
     const perHeadHour = defaultNorms / manPower / productionHrs;
-    return Math.round(perHeadHour);
+    return perHeadHour;
   };
 
   const calculateTargetNormsForGroup = (workedHrs: number, inputManpower: number) => {
