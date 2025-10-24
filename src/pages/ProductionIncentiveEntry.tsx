@@ -447,13 +447,15 @@ const ProductionIncentiveEntry = () => {
     }
     
     const extraNorms = netProduction - customerTargetNorms;
+    const extraNormsSign = extraNorms >= 0 ? 1 : -1; // Store the sign
+    const absExtraNorms = Math.abs(extraNorms); // Use absolute value for calculations
     
     console.log('Customer incentive - Net Production:', netProduction, 'Customer Target Norms:', customerTargetNorms);
-    console.log('Extra norms:', extraNorms);
+    console.log('Extra norms:', extraNorms, 'Absolute Extra Norms:', absExtraNorms);
 
-    // If extraNorms is less than or equal to 0, no incentive
-    if (extraNorms <= 0) {
-      console.log('Extra norms is <= 0, no incentive');
+    // If absExtraNorms is 0, no incentive
+    if (absExtraNorms === 0) {
+      console.log('Extra norms is 0, no incentive');
       return 0;
     }
 
@@ -470,12 +472,12 @@ const ProductionIncentiveEntry = () => {
     // Sort incentive tiers by min value to ensure proper order
     const incentiveTiers = [...selectedNatureData.incentives].sort((a, b) => a.min - b.min);
     
-    // Find the tier that contains the extraNorms
+    // Find the tier that contains the absExtraNorms
     let applicableTier = null;
-    console.log('Checking tiers for extraNorms:', extraNorms);
+    console.log('Checking tiers for absExtraNorms:', absExtraNorms);
     for (const tier of incentiveTiers) {
       console.log(`Checking tier: min=${tier.min}, max=${tier.max}, amount=${tier.amount}, each=${tier.each}, additionalValues=${tier.additionalValues}`);
-      if (extraNorms >= tier.min && (tier.max === null || extraNorms <= tier.max)) {
+      if (absExtraNorms >= tier.min && (tier.max === null || absExtraNorms <= tier.max)) {
         applicableTier = tier;
         console.log('Found applicable tier:', tier);
         break;
@@ -493,7 +495,7 @@ const ProductionIncentiveEntry = () => {
     // If additionalValues is false, calculate cascading tiers
     if (!applicableTier.additionalValues) {
       console.log('additionalValues is false, calculating cascading tiers');
-      let remainingNorms = extraNorms;
+      let remainingNorms = absExtraNorms;
 
       for (const tier of incentiveTiers) {
         // Stop when we reach the applicable tier
@@ -513,7 +515,7 @@ const ProductionIncentiveEntry = () => {
           tierNorms = remainingNorms;
         } else {
           // Calculate how much of this tier range is used
-          const tierRangeUsed = Math.min(extraNorms, tierMax) - tierMin + 1;
+          const tierRangeUsed = Math.min(absExtraNorms, tierMax) - tierMin + 1;
           tierNorms = Math.min(remainingNorms, tierRangeUsed);
         }
 
@@ -530,7 +532,7 @@ const ProductionIncentiveEntry = () => {
     } else {
       // If additionalValues is true, use only the applicable tier
       console.log('additionalValues is true, using single tier calculation');
-      totalIncentiveAmount = (extraNorms / applicableTier.each) * applicableTier.amount;
+      totalIncentiveAmount = (absExtraNorms / applicableTier.each) * applicableTier.amount;
     }
 
     // Apply proportional calculation only for group production type
@@ -542,8 +544,13 @@ const ProductionIncentiveEntry = () => {
       finalIncentive = totalIncentiveAmount * workedHoursRatio;
     }
 
+    // Apply the original sign (negative or positive) to the final incentive
+    finalIncentive = finalIncentive * extraNormsSign;
+
     console.log('Customer Calculation:', {
       extraNorms,
+      absExtraNorms,
+      extraNormsSign,
       additionalValues: applicableTier.additionalValues,
       totalIncentiveAmount,
       productionType,
