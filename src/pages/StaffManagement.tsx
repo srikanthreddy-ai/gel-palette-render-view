@@ -134,7 +134,7 @@ const StaffManagement = () => {
     <div className="p-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">Staff Management</CardTitle>
+          <CardTitle className="text-2xl font-bold">Employee Master</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex justify-between items-center mb-6">
