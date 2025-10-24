@@ -41,7 +41,9 @@ const StaffManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [pageGroup, setPageGroup] = useState(0); // Track which group of 3 pages we're showing
   const itemsPerPage = 10;
+  const pagesPerGroup = 3;
   const { toast } = useToast();
 
   const fetchEmployees = async (page: number = 1, empCode?: string) => {
@@ -206,41 +208,57 @@ const StaffManagement = () => {
             <div className="mt-4 flex justify-center">
               <Pagination>
                 <PaginationContent>
-                  <PaginationItem>
+                   <PaginationItem>
                     <PaginationPrevious 
                       onClick={() => {
                         if (currentPage > 1) {
                           const newPage = currentPage - 1;
                           setCurrentPage(newPage);
                           fetchEmployees(newPage, searchCode);
+                          // Update page group if moving to previous group
+                          const newGroup = Math.floor((newPage - 1) / pagesPerGroup);
+                          setPageGroup(newGroup);
                         }
                       }}
                       className={currentPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                     />
                   </PaginationItem>
                   
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <PaginationItem key={page}>
-                      <PaginationLink
-                        onClick={() => {
-                          setCurrentPage(page);
-                          fetchEmployees(page, searchCode);
-                        }}
-                        isActive={currentPage === page}
-                        className="cursor-pointer"
-                      >
-                        {page}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
+                  {(() => {
+                    const startPage = pageGroup * pagesPerGroup + 1;
+                    const endPage = Math.min(startPage + pagesPerGroup - 1, totalPages);
+                    const pages = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+                    
+                    return pages.map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => {
+                            setCurrentPage(page);
+                            fetchEmployees(page, searchCode);
+                          }}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ));
+                  })()}
                   
                   <PaginationItem>
                     <PaginationNext 
                       onClick={() => {
+                        const lastPageInGroup = Math.min((pageGroup + 1) * pagesPerGroup, totalPages);
+                        
                         if (currentPage < totalPages) {
                           const newPage = currentPage + 1;
                           setCurrentPage(newPage);
                           fetchEmployees(newPage, searchCode);
+                          
+                          // Move to next group if we've reached the end of current group
+                          if (newPage > lastPageInGroup) {
+                            setPageGroup(pageGroup + 1);
+                          }
                         }
                       }}
                       className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
