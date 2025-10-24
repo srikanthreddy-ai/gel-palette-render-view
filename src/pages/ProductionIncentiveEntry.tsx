@@ -306,8 +306,8 @@ const ProductionIncentiveEntry = () => {
     const defaultNorms = parseFloat(norms) || 0;
     const manPower = parseInt(manpower) || 1;
     
-    // For group production type, use Production Hrs (worked hours)
-    const productionHrs = parseFloat(workedHrs) || 1;
+    // Use Production Hrs from shift (not worked hours)
+    const productionHrs = parseFloat(shiftHrs) || 1;
     
     const perHeadHour = defaultNorms / manPower / productionHrs;
     return parseFloat(perHeadHour.toFixed(4));
