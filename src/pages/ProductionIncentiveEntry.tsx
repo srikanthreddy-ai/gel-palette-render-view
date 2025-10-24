@@ -417,7 +417,7 @@ const ProductionIncentiveEntry = () => {
     console.log('Customer Worked Hrs:', customerWorkedHrs);
     console.log('Individual Target:', individualTarget);
     
-    return Math.round(individualTarget);
+    return individualTarget;
   };
 
   const calculateCustomerIncentive = (individualTarget: number, producedQty: number, customerWorkedHrs: number) => {
