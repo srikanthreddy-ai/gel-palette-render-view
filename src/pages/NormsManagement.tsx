@@ -27,7 +27,6 @@ import {
 import { Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import NormsForm from '@/components/NormsForm';
-import { API_CONFIG } from '@/config/api';
 
 interface ProductionNature {
   _id: string;
@@ -70,7 +69,7 @@ const NormsManagement = () => {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Auth token:', authToken ? 'Present' : 'Missing');
       
-      const response = await fetch(`${API_CONFIG.BASE_URL}/ProductionNature?page=${page}&limit=10`, {
+      const response = await fetch(`https://pel-gel-backend.onrender.com/v1/api/ProductionNature?page=${page}&limit=10`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',

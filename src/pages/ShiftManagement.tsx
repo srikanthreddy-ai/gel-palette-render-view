@@ -18,7 +18,6 @@ import {
 import { Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import ShiftForm from '@/components/ShiftForm';
-import { API_CONFIG } from '@/config/api';
 
 interface Shift {
   _id: string;
@@ -44,7 +43,7 @@ const ShiftManagement = () => {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Auth token:', authToken ? 'Present' : 'Missing');
       
-      const response = await fetch(`${API_CONFIG.BASE_URL}/ProductionShift`, {
+      const response = await fetch('https://pel-gel-backend.onrender.com/v1/api/ProductionShift', {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',

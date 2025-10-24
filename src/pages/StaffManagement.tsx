@@ -21,15 +21,11 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { Search, Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import AddEditEmployeeForm from '@/components/AddEditEmployeeForm';
-import { API_CONFIG } from '@/config/api';
 
 interface Employee {
   _id: string;
   empCode: string;
-  title?: string;
-  firstName: string;
-  lastName: string;
-  fullName?: string;
+  fullName: string;
   designation: string;
   department: string;
   email?: string;
@@ -44,9 +40,7 @@ const StaffManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [pageGroup, setPageGroup] = useState(0); // Track which group of 3 pages we're showing
   const itemsPerPage = 10;
-  const pagesPerGroup = 3;
   const { toast } = useToast();
 
   const fetchEmployees = async (page: number = 1, empCode?: string) => {
@@ -57,7 +51,7 @@ const StaffManagement = () => {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Auth token:', authToken ? 'Present' : 'Missing');
       
-      let url = `${API_CONFIG.BASE_URL}/employeesList?page=${page}&limit=${itemsPerPage}`;
+      let url = `https://pel-gel-backend.onrender.com/v1/api/employeesList?page=${page}&limit=${itemsPerPage}`;
       if (empCode) {
         url += `&empCode=${empCode}`;
       }
@@ -182,30 +176,25 @@ const StaffManagement = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  employees.map((employee, index) => {
-                    const displayName = employee.fullName || 
-                      `${employee.title || ''} ${employee.firstName} ${employee.lastName}`.trim();
-                    
-                    return (
-                      <TableRow key={employee._id || index}>
-                        <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
-                        <TableCell>{employee.empCode}</TableCell>
-                        <TableCell>{displayName}</TableCell>
-                        <TableCell>{employee.designation}</TableCell>
-                        <TableCell>{employee.department}</TableCell>
-                        <TableCell>
-                          <Button
-                            size="sm"
-                            onClick={() => handleEditEmployee(employee)}
-                            className="bg-orange-500 hover:bg-orange-600"
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            EDIT
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
+                  employees.map((employee, index) => (
+                    <TableRow key={employee._id || index}>
+                      <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
+                      <TableCell>{employee.empCode}</TableCell>
+                      <TableCell>{employee.fullName}</TableCell>
+                      <TableCell>{employee.designation}</TableCell>
+                      <TableCell>{employee.department}</TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          onClick={() => handleEditEmployee(employee)}
+                          className="bg-orange-500 hover:bg-orange-600"
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          EDIT
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 )}
               </TableBody>
             </Table>
@@ -216,57 +205,41 @@ const StaffManagement = () => {
             <div className="mt-4 flex justify-center">
               <Pagination>
                 <PaginationContent>
-                   <PaginationItem>
+                  <PaginationItem>
                     <PaginationPrevious 
                       onClick={() => {
                         if (currentPage > 1) {
                           const newPage = currentPage - 1;
                           setCurrentPage(newPage);
                           fetchEmployees(newPage, searchCode);
-                          // Update page group if moving to previous group
-                          const newGroup = Math.floor((newPage - 1) / pagesPerGroup);
-                          setPageGroup(newGroup);
                         }
                       }}
                       className={currentPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                     />
                   </PaginationItem>
                   
-                  {(() => {
-                    const startPage = pageGroup * pagesPerGroup + 1;
-                    const endPage = Math.min(startPage + pagesPerGroup - 1, totalPages);
-                    const pages = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
-                    
-                    return pages.map((page) => (
-                      <PaginationItem key={page}>
-                        <PaginationLink
-                          onClick={() => {
-                            setCurrentPage(page);
-                            fetchEmployees(page, searchCode);
-                          }}
-                          isActive={currentPage === page}
-                          className="cursor-pointer"
-                        >
-                          {page}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ));
-                  })()}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => {
+                          setCurrentPage(page);
+                          fetchEmployees(page, searchCode);
+                        }}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
                   
                   <PaginationItem>
                     <PaginationNext 
                       onClick={() => {
-                        const lastPageInGroup = Math.min((pageGroup + 1) * pagesPerGroup, totalPages);
-                        
                         if (currentPage < totalPages) {
                           const newPage = currentPage + 1;
                           setCurrentPage(newPage);
                           fetchEmployees(newPage, searchCode);
-                          
-                          // Move to next group if we've reached the end of current group
-                          if (newPage > lastPageInGroup) {
-                            setPageGroup(pageGroup + 1);
-                          }
                         }
                       }}
                       className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}

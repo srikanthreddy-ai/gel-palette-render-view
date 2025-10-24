@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { API_CONFIG } from '@/config/api';
 
 interface Shift {
   _id: string;
@@ -87,8 +86,8 @@ const ShiftForm: React.FC<ShiftFormProps> = ({ shift, onSave, onCancel }) => {
       };
 
       const url = shift 
-        ? `${API_CONFIG.BASE_URL}/ProductionShift/${shift._id}`
-        : `${API_CONFIG.BASE_URL}/ProductionShift`;
+        ? `https://pel-gel-backend.onrender.com/v1/api/ProductionShift/${shift._id}`
+        : 'https://pel-gel-backend.onrender.com/v1/api/ProductionShift';
       
       const method = shift ? 'PUT' : 'POST';
       

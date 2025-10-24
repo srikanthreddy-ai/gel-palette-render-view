@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { API_CONFIG } from '@/config/api';
 
 const Dashboard = () => {
   const [totalEmployees, setTotalEmployees] = useState<number>(0);
@@ -15,7 +14,7 @@ const Dashboard = () => {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Fetching employee count...');
       
-      const response = await fetch(`${API_CONFIG.BASE_URL}/employeesList`, {
+      const response = await fetch('https://pel-gel-backend.onrender.com/v1/api/employeesList', {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -50,7 +49,7 @@ const Dashboard = () => {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Fetching total buildings planned...');
       
-      const response = await fetch(`${API_CONFIG.BASE_URL}/ProductionDept`, {
+      const response = await fetch('https://pel-gel-backend.onrender.com/v1/api/ProductionDept', {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -90,7 +89,7 @@ const Dashboard = () => {
       
       console.log('Fetching worked yesterday count for date:', yesterdayDate);
       
-      const response = await fetch(`${API_CONFIG.BASE_URL}/getAllTimeSheets?date=${yesterdayDate}`, {
+      const response = await fetch(`https://pel-gel-backend.onrender.com/v1/api/getAllTimeSheets?date=${yesterdayDate}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
