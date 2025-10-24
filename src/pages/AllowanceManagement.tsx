@@ -27,6 +27,7 @@ import {
 import { Plus, Edit } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import AllowanceForm from '@/components/AllowanceForm';
+import { API_CONFIG } from '@/config/api';
 
 interface Allowance {
   _id: string;
@@ -44,9 +45,11 @@ const AllowanceManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [pageGroup, setPageGroup] = useState(0);
   const { toast } = useToast();
   
   const ITEMS_PER_PAGE = 10;
+  const PAGES_PER_GROUP = 3;
 
   const fetchAllowances = async (page: number = currentPage) => {
     setIsLoading(true);
@@ -56,7 +59,7 @@ const AllowanceManagement = () => {
       const authToken = sessionStorage.getItem('authToken');
       console.log('Auth token:', authToken ? 'Present' : 'Missing');
       
-      const response = await fetch(`https://pel-gel-backend.onrender.com/v1/api/getAllowences?page=${page}&limit=${ITEMS_PER_PAGE}`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/getAllowences?page=${page}&limit=${ITEMS_PER_PAGE}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
@@ -120,103 +123,24 @@ const AllowanceManagement = () => {
   };
 
   const renderPaginationItems = () => {
-    const items = [];
-    const showEllipsis = totalPages > 7;
+    const startPage = pageGroup * PAGES_PER_GROUP + 1;
+    const endPage = Math.min(startPage + PAGES_PER_GROUP - 1, totalPages);
+    const pages = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
     
-    if (showEllipsis) {
-      // Always show first page
-      items.push(
-        <PaginationItem key={1}>
-          <PaginationLink
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              handlePageChange(1);
-            }}
-            isActive={currentPage === 1}
-          >
-            1
-          </PaginationLink>
-        </PaginationItem>
-      );
-
-      // Show ellipsis if current page is far from start
-      if (currentPage > 4) {
-        items.push(
-          <PaginationItem key="ellipsis-start">
-            <PaginationEllipsis />
-          </PaginationItem>
-        );
-      }
-
-      // Show pages around current page
-      const start = Math.max(2, currentPage - 1);
-      const end = Math.min(totalPages - 1, currentPage + 1);
-      
-      for (let i = start; i <= end; i++) {
-        items.push(
-          <PaginationItem key={i}>
-            <PaginationLink
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                handlePageChange(i);
-              }}
-              isActive={currentPage === i}
-            >
-              {i}
-            </PaginationLink>
-          </PaginationItem>
-        );
-      }
-
-      // Show ellipsis if current page is far from end
-      if (currentPage < totalPages - 3) {
-        items.push(
-          <PaginationItem key="ellipsis-end">
-            <PaginationEllipsis />
-          </PaginationItem>
-        );
-      }
-
-      // Always show last page
-      if (totalPages > 1) {
-        items.push(
-          <PaginationItem key={totalPages}>
-            <PaginationLink
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                handlePageChange(totalPages);
-              }}
-              isActive={currentPage === totalPages}
-            >
-              {totalPages}
-            </PaginationLink>
-          </PaginationItem>
-        );
-      }
-    } else {
-      // Show all pages if total pages <= 7
-      for (let i = 1; i <= totalPages; i++) {
-        items.push(
-          <PaginationItem key={i}>
-            <PaginationLink
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                handlePageChange(i);
-              }}
-              isActive={currentPage === i}
-            >
-              {i}
-            </PaginationLink>
-          </PaginationItem>
-        );
-      }
-    }
-
-    return items;
+    return pages.map((page) => (
+      <PaginationItem key={page}>
+        <PaginationLink
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            handlePageChange(page);
+          }}
+          isActive={currentPage === page}
+        >
+          {page}
+        </PaginationLink>
+      </PaginationItem>
+    ));
   };
 
   return (
@@ -287,7 +211,12 @@ const AllowanceManagement = () => {
                       href="#"
                       onClick={(e) => {
                         e.preventDefault();
-                        if (currentPage > 1) handlePageChange(currentPage - 1);
+                        if (currentPage > 1) {
+                          const newPage = currentPage - 1;
+                          handlePageChange(newPage);
+                          const newGroup = Math.floor((newPage - 1) / PAGES_PER_GROUP);
+                          setPageGroup(newGroup);
+                        }
                       }}
                       className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
                     />
@@ -300,7 +229,16 @@ const AllowanceManagement = () => {
                       href="#"
                       onClick={(e) => {
                         e.preventDefault();
-                        if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                        const lastPageInGroup = Math.min((pageGroup + 1) * PAGES_PER_GROUP, totalPages);
+                        
+                        if (currentPage < totalPages) {
+                          const newPage = currentPage + 1;
+                          handlePageChange(newPage);
+                          
+                          if (newPage > lastPageInGroup) {
+                            setPageGroup(pageGroup + 1);
+                          }
+                        }
                       }}
                       className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
                     />

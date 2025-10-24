@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
+import { API_CONFIG } from '@/config/api';
 
 interface Building {
   _id: string;
@@ -83,8 +84,8 @@ const BuildingForm: React.FC<BuildingFormProps> = ({ building, onSave, onCancel 
       }
 
       const url = building 
-        ? `https://pel-gel-backend.onrender.com/v1/api/ProductionDept/${building._id}`
-        : 'https://pel-gel-backend.onrender.com/v1/api/ProductionDept';
+        ? `${API_CONFIG.BASE_URL}/ProductionDept/${building._id}`
+        : `${API_CONFIG.BASE_URL}/ProductionDept`;
       
       const method = building ? 'PUT' : 'POST';
       
