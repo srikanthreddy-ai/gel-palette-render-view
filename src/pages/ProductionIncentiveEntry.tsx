@@ -311,11 +311,8 @@ const ProductionIncentiveEntry = () => {
       ? originalManpower 
       : (parseInt(manpower) || 1);
     
-    // For group type, use current Production Hrs (workedHrs)
-    // For individual type, use shift hours
-    const productionHrs = productionType.toLowerCase() === 'group'
-      ? (parseFloat(workedHrs) || 1)
-      : (parseFloat(shiftHrs) || 1);
+    // Always use shift hours for Per Head Hour calculation
+    const productionHrs = parseFloat(shiftHrs) || 1;
     
     const perHeadHour = defaultNorms / manPower / productionHrs;
     return perHeadHour;
