@@ -335,7 +335,7 @@ const ProductionIncentiveEntry = () => {
       console.log('Worked Hrs:', workedHrsValue);
       console.log('Calculated Target Norms:', targetNorms);
       
-      return Math.round(targetNorms);
+      return targetNorms;
     } else {
       // For group: Per Head Hour * Current Man power * Production hrs
       const perHeadHour = calculatePerHeadHour();
@@ -350,7 +350,7 @@ const ProductionIncentiveEntry = () => {
       console.log('Production Hrs:', productionHrs);
       console.log('Calculated Target Norms:', targetNorms);
       
-      return Math.round(targetNorms);
+      return targetNorms;
     }
   };
 
