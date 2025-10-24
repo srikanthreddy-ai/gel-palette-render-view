@@ -26,7 +26,10 @@ import { API_CONFIG } from '@/config/api';
 interface Employee {
   _id: string;
   empCode: string;
-  fullName: string;
+  title?: string;
+  firstName: string;
+  lastName: string;
+  fullName?: string;
   designation: string;
   department: string;
   email?: string;
@@ -179,25 +182,30 @@ const StaffManagement = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  employees.map((employee, index) => (
-                    <TableRow key={employee._id || index}>
-                      <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
-                      <TableCell>{employee.empCode}</TableCell>
-                      <TableCell>{employee.fullName}</TableCell>
-                      <TableCell>{employee.designation}</TableCell>
-                      <TableCell>{employee.department}</TableCell>
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          onClick={() => handleEditEmployee(employee)}
-                          className="bg-orange-500 hover:bg-orange-600"
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          EDIT
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  employees.map((employee, index) => {
+                    const displayName = employee.fullName || 
+                      `${employee.title || ''} ${employee.firstName} ${employee.lastName}`.trim();
+                    
+                    return (
+                      <TableRow key={employee._id || index}>
+                        <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
+                        <TableCell>{employee.empCode}</TableCell>
+                        <TableCell>{displayName}</TableCell>
+                        <TableCell>{employee.designation}</TableCell>
+                        <TableCell>{employee.department}</TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            onClick={() => handleEditEmployee(employee)}
+                            className="bg-orange-500 hover:bg-orange-600"
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            EDIT
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
