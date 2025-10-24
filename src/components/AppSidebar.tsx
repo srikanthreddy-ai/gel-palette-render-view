@@ -42,12 +42,6 @@ const AppSidebar = () => {
       ]
     },
     {
-      title: "Staff Management",
-      icon: Users,
-      url: "/staff",
-      module: "staff"
-    },
-    {
       title: "Users",
       icon: Users,
       url: "/users",
@@ -71,10 +65,11 @@ const AppSidebar = () => {
       url: "#",
       module: "master_data",
       subItems: [
-        { title: "Building Master", url: "/master/building" },
-        { title: "Norms Master", url: "/master/norms" },
+        { title: "Production Building Master", url: "/master/building" },
+        { title: "Production Norms Master", url: "/master/norms" },
         { title: "Shift Master", url: "/master/shift" },
         { title: "Allowance Master", url: "/master/allowance" },
+        { title: "Employee Master", url: "/staff" },
         { title: "Bulk Upload", url: "/master/bulk-upload" }
       ]
     }
