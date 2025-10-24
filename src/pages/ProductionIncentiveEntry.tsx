@@ -944,6 +944,8 @@ const ProductionIncentiveEntry = () => {
               <Input 
                 value={norms} 
                 type="number"
+                disabled={productionType.toLowerCase() === 'group'}
+                className={productionType.toLowerCase() === 'group' ? 'bg-gray-50' : ''}
                 onChange={(e) => {
                   setNorms(e.target.value);
                   // Update employee norms for individual production type
