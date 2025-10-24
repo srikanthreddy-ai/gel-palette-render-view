@@ -319,20 +319,39 @@ const ProductionIncentiveEntry = () => {
   };
 
   const calculateTargetNormsForGroup = (workedHrs: number, inputManpower: number) => {
-    // Target Norms = Per Head Hour * Current Man power * Production hrs
-    const perHeadHour = calculatePerHeadHour();
-    const currentManPower = inputManpower || 1;
-    const productionHrs = parseFloat(workedHrs.toString()) || 1;
+    const currentProductionType = productionType.toLowerCase();
     
-    const targetNorms = perHeadHour * currentManPower * productionHrs;
-    
-    console.log('=== Group Target Norms Calculation ===');
-    console.log('Per Head Hour:', perHeadHour);
-    console.log('Current Man Power:', currentManPower);
-    console.log('Production Hrs:', productionHrs);
-    console.log('Calculated Target Norms:', targetNorms);
-    
-    return Math.round(targetNorms);
+    if (currentProductionType === 'individual') {
+      // For individual: (Default Norms / Production Hrs) * Worked Hrs
+      const defaultNorms = parseFloat(norms) || 0;
+      const productionHrs = parseFloat(shiftHrs) || 1;
+      const workedHrsValue = parseFloat(workedHrs.toString()) || 0;
+      
+      const targetNorms = (defaultNorms / productionHrs) * workedHrsValue;
+      
+      console.log('=== Individual Target Norms Calculation ===');
+      console.log('Default Norms:', defaultNorms);
+      console.log('Production Hrs (Shift Hrs):', productionHrs);
+      console.log('Worked Hrs:', workedHrsValue);
+      console.log('Calculated Target Norms:', targetNorms);
+      
+      return Math.round(targetNorms);
+    } else {
+      // For group: Per Head Hour * Current Man power * Production hrs
+      const perHeadHour = calculatePerHeadHour();
+      const currentManPower = inputManpower || 1;
+      const productionHrs = parseFloat(workedHrs.toString()) || 1;
+      
+      const targetNorms = perHeadHour * currentManPower * productionHrs;
+      
+      console.log('=== Group Target Norms Calculation ===');
+      console.log('Per Head Hour:', perHeadHour);
+      console.log('Current Man Power:', currentManPower);
+      console.log('Production Hrs:', productionHrs);
+      console.log('Calculated Target Norms:', targetNorms);
+      
+      return Math.round(targetNorms);
+    }
   };
 
   const getTargetNormsValue = () => {
