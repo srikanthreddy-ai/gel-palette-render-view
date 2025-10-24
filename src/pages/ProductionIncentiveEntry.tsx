@@ -304,7 +304,12 @@ const ProductionIncentiveEntry = () => {
     
     // Use the editable Default Norms field value
     const defaultNorms = parseFloat(norms) || 0;
-    const manPower = parseInt(manpower) || 1;
+    
+    // For group type, use original manpower (don't update on manpower changes)
+    // For individual type, use current manpower value
+    const manPower = productionType.toLowerCase() === 'group' 
+      ? originalManpower 
+      : (parseInt(manpower) || 1);
     
     // Use Production Hrs from shift (not worked hours)
     const productionHrs = parseFloat(shiftHrs) || 1;
