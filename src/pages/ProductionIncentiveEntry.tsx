@@ -1060,10 +1060,10 @@ const ProductionIncentiveEntry = () => {
           {/* Selected Customers Table */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Selected Customers</h3>
+              <h3 className="text-lg font-semibold">Selected Employees</h3>
               {manpower && (
                 <div className="text-sm text-gray-500">
-                  {selectedCustomers.length} / {manpower} customers selected
+                  {selectedCustomers.length} / {manpower} employees selected
                 </div>
               )}
             </div>
@@ -1204,7 +1204,7 @@ const ProductionIncentiveEntry = () => {
             <p>Shifts loaded: {shifts.length}</p>
             <p>Buildings loaded: {buildings.length}</p>
             <p>Natures loaded: {natures.length}</p>
-            <p>Selected customers: {selectedCustomers.length}</p>
+            <p>Selected employees: {selectedCustomers.length}</p>
           </div>
         </CardContent>
       </Card>
