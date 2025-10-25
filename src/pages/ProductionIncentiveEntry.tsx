@@ -1102,11 +1102,11 @@ const ProductionIncentiveEntry = () => {
                           <TableCell>{startIndex + index + 1}</TableCell>
                          <TableCell>{customer.customerName}</TableCell>
                          <TableCell>{customer.empCode}</TableCell>
-                         <TableCell>
-                           <div className="text-sm font-medium">
-                             {customer.individualTarget}
-                           </div>
-                         </TableCell>
+                          <TableCell>
+                            <div className="text-sm font-medium">
+                              {Number(customer.individualTarget).toFixed(2)}
+                            </div>
+                          </TableCell>
                          {productionType.toLowerCase() !== 'group' && (
                            <TableCell>
                              <Input
