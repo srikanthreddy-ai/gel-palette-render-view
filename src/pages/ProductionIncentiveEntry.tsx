@@ -477,10 +477,10 @@ const ProductionIncentiveEntry = () => {
     let applicableTier = null;
     console.log('Checking tiers for absExtraNorms:', absExtraNorms, 'extraNormsSign:', extraNormsSign);
     
-    // For negative extra norms, always use the first tier (min=0)
+    // For negative extra norms, always use the first tier from array (index 0)
     if (extraNormsSign === -1) {
-      applicableTier = incentiveTiers.find(tier => tier.min === 0);
-      console.log('Negative extra norms - using first tier (min=0):', applicableTier);
+      applicableTier = incentiveTiers[0];
+      console.log('Negative extra norms - using first tier (index 0):', applicableTier);
     } else {
       // For positive extra norms, find the matching tier
       for (const tier of incentiveTiers) {
