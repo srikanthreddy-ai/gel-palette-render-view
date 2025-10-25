@@ -1,6 +1,6 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://pel-gel-backend.onrender.com/v1/api',
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/v1/api',
 };
 
 // API endpoints
