@@ -769,6 +769,8 @@ const ProductionIncentiveEntry = () => {
           productionType: selectedNatureData?.productionType || '',
           norms: parseFloat(norms) || 0,
           employeeNorms: parseFloat(employeeNorms) || 0,
+          targetNorms: customer.individualTarget,
+          netProduction: customer.producedQty,
         };
 
         console.log('Submitting timesheet for customer:', customer.customerName, payload);
