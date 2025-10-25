@@ -579,18 +579,6 @@ const ProductionIncentiveEntry = () => {
         const currentWorkedHrs = parseFloat(workedHrs) || 1;
         const calculatedTargetNorms = calculateTargetNormsForGroup(currentWorkedHrs, newManpower);
         setEmployeeNorms(calculatedTargetNorms.toString());
-        
-        // Update all selected employees' Target Norms with the new value
-        setSelectedCustomers(prev => 
-          prev.map(customer => {
-            const newIncentive = calculateCustomerIncentive(calculatedTargetNorms, customer.producedQty, customer.workedHrs);
-            return {
-              ...customer,
-              individualTarget: calculatedTargetNorms,
-              incentive: newIncentive
-            };
-          })
-        );
       } else {
         // Calculate per-person per-hour norms from original data
         const perPersonPerHourNorms = originalNorms / (originalManpower * originalShiftHrs);
@@ -610,18 +598,6 @@ const ProductionIncentiveEntry = () => {
       const currentManpower = parseInt(manpower) || 1;
       const newTargetNorms = calculateTargetNormsForGroup(currentWorkedHrs, currentManpower);
       setEmployeeNorms(newTargetNorms.toString());
-      
-      // Update all selected employees' Target Norms with the new value
-      setSelectedCustomers(prev => 
-        prev.map(customer => {
-          const newIncentive = calculateCustomerIncentive(newTargetNorms, customer.producedQty, customer.workedHrs);
-          return {
-            ...customer,
-            individualTarget: newTargetNorms,
-            incentive: newIncentive
-          };
-        })
-      );
     }
   };
 
@@ -1013,18 +989,6 @@ const ProductionIncentiveEntry = () => {
                     const currentManpower = parseInt(manpower) || 1;
                     const newTargetNorms = calculateTargetNormsForGroup(currentWorkedHrs, currentManpower);
                     setEmployeeNorms(newTargetNorms.toString());
-                    
-                    // Update all selected employees' Target Norms with the new value
-                    setSelectedCustomers(prev => 
-                      prev.map(customer => {
-                        const newIncentive = calculateCustomerIncentive(newTargetNorms, customer.producedQty, customer.workedHrs);
-                        return {
-                          ...customer,
-                          individualTarget: newTargetNorms,
-                          incentive: newIncentive
-                        };
-                      })
-                    );
                   }
                 }}
               />
