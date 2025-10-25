@@ -759,7 +759,7 @@ const ProductionIncentiveEntry = () => {
           employee_id: customer.id,
           shift_id: selectedShift,
           shiftName: selectedShiftData?.shiftName || '',
-          shiftHrs: parseFloat(shiftHrs) || 0,
+          shiftHrs: customer.workedHrs,
           manpower: parseInt(manpower) || 0,
           employeeCode: customer.empCode,
           incentiveAmount: customer.incentive,
