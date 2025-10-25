@@ -575,9 +575,22 @@ const ProductionIncentiveEntry = () => {
     
     if (originalNorms > 0 && originalManpower > 0 && originalShiftHrs > 0) {
       if (productionType.toLowerCase() === 'group') {
-        // For group production type, use Production Hrs from Incentive Entry
-        const calculatedTargetNorms = calculateTargetNormsForGroup(productionHrs, newManpower);
+        // For group production type, use current Production Hrs from form
+        const currentWorkedHrs = parseFloat(workedHrs) || 1;
+        const calculatedTargetNorms = calculateTargetNormsForGroup(currentWorkedHrs, newManpower);
         setEmployeeNorms(calculatedTargetNorms.toString());
+        
+        // Update all selected employees' Target Norms with the new value
+        setSelectedCustomers(prev => 
+          prev.map(customer => {
+            const newIncentive = calculateCustomerIncentive(calculatedTargetNorms, customer.producedQty, customer.workedHrs);
+            return {
+              ...customer,
+              individualTarget: calculatedTargetNorms,
+              incentive: newIncentive
+            };
+          })
+        );
       } else {
         // Calculate per-person per-hour norms from original data
         const perPersonPerHourNorms = originalNorms / (originalManpower * originalShiftHrs);
@@ -597,6 +610,18 @@ const ProductionIncentiveEntry = () => {
       const currentManpower = parseInt(manpower) || 1;
       const newTargetNorms = calculateTargetNormsForGroup(currentWorkedHrs, currentManpower);
       setEmployeeNorms(newTargetNorms.toString());
+      
+      // Update all selected employees' Target Norms with the new value
+      setSelectedCustomers(prev => 
+        prev.map(customer => {
+          const newIncentive = calculateCustomerIncentive(newTargetNorms, customer.producedQty, customer.workedHrs);
+          return {
+            ...customer,
+            individualTarget: newTargetNorms,
+            incentive: newIncentive
+          };
+        })
+      );
     }
   };
 
@@ -642,9 +667,10 @@ const ProductionIncentiveEntry = () => {
     if (productionType.toLowerCase() === 'individual') {
       individualTargetValue = calculateIndividualTargetNorms(customerWorkedHrs);
     } else {
-      // For group production type, use the group target norms calculation
+      // For group production type, use current Production Hrs from form
       const currentManpower = parseInt(manpower) || 1;
-      individualTargetValue = calculateTargetNormsForGroup(originalShiftHrs, currentManpower);
+      const currentWorkedHrs = parseFloat(workedHrs) || 1;
+      individualTargetValue = calculateTargetNormsForGroup(currentWorkedHrs, currentManpower);
     }
     
     // Get actual produced quantity from Net Production input
@@ -987,6 +1013,18 @@ const ProductionIncentiveEntry = () => {
                     const currentManpower = parseInt(manpower) || 1;
                     const newTargetNorms = calculateTargetNormsForGroup(currentWorkedHrs, currentManpower);
                     setEmployeeNorms(newTargetNorms.toString());
+                    
+                    // Update all selected employees' Target Norms with the new value
+                    setSelectedCustomers(prev => 
+                      prev.map(customer => {
+                        const newIncentive = calculateCustomerIncentive(newTargetNorms, customer.producedQty, customer.workedHrs);
+                        return {
+                          ...customer,
+                          individualTarget: newTargetNorms,
+                          incentive: newIncentive
+                        };
+                      })
+                    );
                   }
                 }}
               />
