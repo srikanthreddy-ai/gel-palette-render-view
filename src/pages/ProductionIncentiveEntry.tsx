@@ -501,8 +501,13 @@ const ProductionIncentiveEntry = () => {
 
     let totalIncentiveAmount = 0;
 
-    // If additionalValues is false, calculate cascading tiers
-    if (!applicableTier.additionalValues) {
+    // For negative extra norms, always use simple calculation with first tier
+    if (extraNormsSign === -1) {
+      console.log('Negative extra norms - simple calculation: absExtraNorms / each * amount');
+      totalIncentiveAmount = (absExtraNorms / applicableTier.each) * applicableTier.amount;
+      console.log(`Calculation: ${absExtraNorms} / ${applicableTier.each} * ${applicableTier.amount} = ${totalIncentiveAmount}`);
+    } else if (!applicableTier.additionalValues) {
+      // For positive extra norms with additionalValues false, calculate cascading tiers
       console.log('additionalValues is false, calculating cascading tiers');
       let remainingNorms = absExtraNorms;
 
