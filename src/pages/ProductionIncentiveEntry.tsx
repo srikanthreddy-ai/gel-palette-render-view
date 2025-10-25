@@ -311,8 +311,9 @@ const ProductionIncentiveEntry = () => {
       ? originalManpower 
       : (parseInt(manpower) || 1);
     
-    // Use current Production Hrs (workedHrs) for Per Head Hour calculation
-    const productionHrs = parseFloat(workedHrs) || parseFloat(shiftHrs) || 1;
+    // Always use shiftHrs (original Production Hrs from shift) for Per Head Hour calculation
+    // This ensures Per Head Hour stays constant even when Production Hrs (workedHrs) changes
+    const productionHrs = parseFloat(shiftHrs) || 1;
     
     const perHeadHour = defaultNorms / manPower / productionHrs;
     return perHeadHour;
