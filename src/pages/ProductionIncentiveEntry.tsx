@@ -963,7 +963,7 @@ const ProductionIncentiveEntry = () => {
               <div className="space-y-2">
                 <Label>Per Head Hour</Label>
                 <Input 
-                  value={calculatePerHeadHour()} 
+                  value={calculatePerHeadHour().toFixed(2)} 
                   readOnly
                   className="bg-gray-50"
                   type="number"
