@@ -442,7 +442,7 @@ const ProductionIncentiveEntry = () => {
     if (productionType.toLowerCase() === 'group') {
       const perHeadHour = calculatePerHeadHour();
       const currentManPower = parseInt(manpower) || 1;
-      const productionHrs = originalShiftHrs || 1;
+      const productionHrs = parseFloat(workedHrs) || 1;
       customerTargetNorms = perHeadHour * currentManPower * productionHrs;
       console.log('Group Customer Target Norms: perHeadHour:', perHeadHour, 'currentManPower:', currentManPower, 'productionHrs:', productionHrs, 'result:', customerTargetNorms);
     }
