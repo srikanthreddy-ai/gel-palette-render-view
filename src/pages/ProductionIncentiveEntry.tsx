@@ -475,13 +475,21 @@ const ProductionIncentiveEntry = () => {
     
     // Find the tier that contains the absExtraNorms
     let applicableTier = null;
-    console.log('Checking tiers for absExtraNorms:', absExtraNorms);
-    for (const tier of incentiveTiers) {
-      console.log(`Checking tier: min=${tier.min}, max=${tier.max}, amount=${tier.amount}, each=${tier.each}, additionalValues=${tier.additionalValues}`);
-      if (absExtraNorms >= tier.min && (tier.max === null || absExtraNorms <= tier.max)) {
-        applicableTier = tier;
-        console.log('Found applicable tier:', tier);
-        break;
+    console.log('Checking tiers for absExtraNorms:', absExtraNorms, 'extraNormsSign:', extraNormsSign);
+    
+    // For negative extra norms, always use the first tier (min=0)
+    if (extraNormsSign === -1) {
+      applicableTier = incentiveTiers.find(tier => tier.min === 0);
+      console.log('Negative extra norms - using first tier (min=0):', applicableTier);
+    } else {
+      // For positive extra norms, find the matching tier
+      for (const tier of incentiveTiers) {
+        console.log(`Checking tier: min=${tier.min}, max=${tier.max}, amount=${tier.amount}, each=${tier.each}, additionalValues=${tier.additionalValues}`);
+        if (absExtraNorms >= tier.min && (tier.max === null || absExtraNorms <= tier.max)) {
+          applicableTier = tier;
+          console.log('Found applicable tier:', tier);
+          break;
+        }
       }
     }
 
