@@ -60,7 +60,7 @@ const AppSidebar = () => {
       module: "payroll"
     },
     {
-      title: "Master Data",
+      title: "Incentive Master",
       icon: Database,
       url: "#",
       module: "master_data",
