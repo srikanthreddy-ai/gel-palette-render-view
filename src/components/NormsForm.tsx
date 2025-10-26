@@ -102,9 +102,9 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         norms: norm.norms?.toString() || "",
         startDate: norm.startDate ? new Date(norm.startDate).toISOString().split('T')[0] : "",
         endDate: norm.endDate ? new Date(norm.endDate).toISOString().split('T')[0] : "",
-        targetEnabled: (norm as any).targetEnabled || false,
-        targetValue: (norm as any).targetValue?.toString() || "",
-        referenceNorm: (norm as any).referenceNorm || "",
+        targetEnabled: (norm as any).target?.enabled || false,
+        targetValue: (norm as any).target?.value?.toString() || "",
+        referenceNorm: (norm as any).reference_nature || "",
         incentives: formattedIncentives,
       };
       
