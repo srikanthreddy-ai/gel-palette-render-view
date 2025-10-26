@@ -522,15 +522,15 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         <Select 
           value={formData.referenceNorm} 
           onValueChange={(value) => setFormData(prev => ({ ...prev, referenceNorm: value }))}
-          disabled={isReferenceNormsLoading}
+          disabled={isBuildingsLoading}
         >
           <SelectTrigger>
-            <SelectValue placeholder={isReferenceNormsLoading ? "Loading reference norms..." : "Select a reference norm (optional)"} />
+            <SelectValue placeholder={isBuildingsLoading ? "Loading buildings..." : "Select a building (optional)"} />
           </SelectTrigger>
           <SelectContent>
-            {referenceNorms.map((refNorm) => (
-              <SelectItem key={refNorm._id} value={refNorm._id}>
-                [{refNorm.productionCode}] {refNorm.productionNature} ({refNorm.productionType}) - Building: {refNorm.building_id?.buildingName}
+            {buildings.map((building) => (
+              <SelectItem key={building._id} value={building._id}>
+                {building.buildingName} ({building.buildingCode})
               </SelectItem>
             ))}
           </SelectContent>
