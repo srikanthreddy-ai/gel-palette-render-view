@@ -99,6 +99,8 @@ interface SelectedCustomer {
   individualTarget: number;
   producedQty: number;
   workedHrs: number;
+  targetEnabled: boolean;
+  targetValue: number;
   incentive: number;
 }
 
@@ -673,6 +675,8 @@ const ProductionIncentiveEntry = () => {
       individualTarget: individualTargetValue,
       producedQty: actualProducedQty,
       workedHrs: parseFloat(workedHrs) || 0,
+      targetEnabled: false,
+      targetValue: 0,
       incentive: calculatedIncentive
     };
 
@@ -685,7 +689,7 @@ const ProductionIncentiveEntry = () => {
     setSelectedCustomers(prev => prev.filter(customer => customer.empCode !== empCode));
   };
 
-  const updateCustomerField = (empCode: string, field: keyof SelectedCustomer, value: number) => {
+  const updateCustomerField = (empCode: string, field: keyof SelectedCustomer, value: number | boolean) => {
     setSelectedCustomers(prev => 
       prev.map(customer => {
         if (customer.empCode === empCode) {
@@ -697,10 +701,10 @@ const ProductionIncentiveEntry = () => {
             
             if (productionType.toLowerCase() === 'individual') {
               // Recalculate individual target: Default Norms/Production Hrs * Worked Hrs
-              newIndividualTarget = calculateIndividualTargetNorms(value);
+              newIndividualTarget = calculateIndividualTargetNorms(value as number);
             }
             
-            const newIncentive = calculateCustomerIncentive(newIndividualTarget, updatedCustomer.producedQty, value);
+            const newIncentive = calculateCustomerIncentive(newIndividualTarget, updatedCustomer.producedQty, value as number);
             return {
               ...updatedCustomer,
               individualTarget: newIndividualTarget,
@@ -710,7 +714,7 @@ const ProductionIncentiveEntry = () => {
           
           // If produced qty changed, recalculate incentive
           if (field === 'producedQty') {
-            const newIncentive = calculateCustomerIncentive(updatedCustomer.individualTarget, value, updatedCustomer.workedHrs);
+            const newIncentive = calculateCustomerIncentive(updatedCustomer.individualTarget, value as number, updatedCustomer.workedHrs);
             return {
               ...updatedCustomer,
               incentive: newIncentive
@@ -1100,6 +1104,7 @@ const ProductionIncentiveEntry = () => {
                     <TableHead>Target Norms</TableHead>
                     {productionType.toLowerCase() !== 'group' && <TableHead>Produced Qty.</TableHead>}
                     <TableHead>Worked Hrs</TableHead>
+                    <TableHead>Target Section</TableHead>
                     <TableHead>Incentive (₹)</TableHead>
                     <TableHead className="w-20">Remove</TableHead>
                   </TableRow>
@@ -1107,7 +1112,7 @@ const ProductionIncentiveEntry = () => {
                  <TableBody>
                   {selectedCustomers.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={productionType.toLowerCase() === 'group' ? 7 : 8} className="text-center text-gray-500 py-8">
+                        <TableCell colSpan={productionType.toLowerCase() === 'group' ? 8 : 9} className="text-center text-gray-500 py-8">
                           No customers selected
                         </TableCell>
                       </TableRow>
@@ -1147,6 +1152,30 @@ const ProductionIncentiveEntry = () => {
                               className="w-24"
                               step="0.01"
                             />
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={customer.targetEnabled}
+                                onChange={(e) => {
+                                  updateCustomerField(customer.empCode, 'targetEnabled', e.target.checked ? 1 : 0);
+                                }}
+                                className="h-4 w-4 rounded border-gray-300"
+                              />
+                              {customer.targetEnabled && (
+                                <Input
+                                  type="number"
+                                  value={customer.targetValue}
+                                  onChange={(e) => {
+                                    const newTargetValue = parseFloat(e.target.value) || 0;
+                                    updateCustomerField(customer.empCode, 'targetValue', newTargetValue);
+                                  }}
+                                  className="w-24"
+                                  step="0.01"
+                                />
+                              )}
+                            </div>
                           </TableCell>
                          <TableCell>
                            <div className="text-sm font-medium text-green-600">
