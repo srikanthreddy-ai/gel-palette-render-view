@@ -308,8 +308,8 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
 
       // Prepare the payload with proper incentives formatting
       const formattedIncentives = formData.incentives.map(incentive => ({
-        min: incentive.min ? parseInt(incentive.min) : null,
-        max: incentive.min && !incentive.max ? null : (incentive.max ? parseInt(incentive.max) : null),
+        min: incentive.min ? parseFloat(incentive.min) : null,
+        max: incentive.min && !incentive.max ? null : (incentive.max ? parseFloat(incentive.max) : null),
         each: incentive.each ? parseInt(incentive.each) : null,
         amount: incentive.amount ? parseFloat(incentive.amount) : null,
         additionalValues: incentive.additionalValues || false,
