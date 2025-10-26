@@ -530,7 +530,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
           <SelectContent>
             {referenceNorms.map((refNorm) => (
               <SelectItem key={refNorm._id} value={refNorm._id}>
-                {refNorm.productionNature} - {refNorm.building_id?.buildingName} ({refNorm.productionCode})
+                [{refNorm.productionCode}] {refNorm.productionNature} ({refNorm.productionType}) - Building: {refNorm.building_id?.buildingName}
               </SelectItem>
             ))}
           </SelectContent>
