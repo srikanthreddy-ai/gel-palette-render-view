@@ -319,10 +319,18 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         ...formData,
         manpower: parseInt(formData.manpower) || 0,
         norms: parseInt(formData.norms) || 0,
-        targetValue: formData.targetEnabled && formData.targetValue ? parseFloat(formData.targetValue) : null,
-        referenceNorm: formData.referenceNorm || null,
+        target: {
+          enabled: formData.targetEnabled,
+          value: formData.targetEnabled && formData.targetValue ? parseFloat(formData.targetValue) : null,
+        },
+        reference_nature: formData.referenceNorm || null,
         incentives: formattedIncentives,
       };
+
+      // Remove fields that are now nested or renamed
+      delete (payload as any).targetEnabled;
+      delete (payload as any).targetValue;
+      delete (payload as any).referenceNorm;
 
       const url = norm 
         ? `${API_CONFIG.BASE_URL}/ProductionNature/${norm._id}`
