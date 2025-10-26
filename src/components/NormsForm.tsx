@@ -394,7 +394,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
           <SelectContent>
             {buildings.map((building) => (
               <SelectItem key={building._id} value={building._id}>
-                {building.buildingName} ({building.buildingCode})
+                {building.buildingName}
               </SelectItem>
             ))}
           </SelectContent>
@@ -531,7 +531,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
           <SelectContent>
             {buildings.map((building) => (
               <SelectItem key={building._id} value={building._id}>
-                {building.buildingName} ({building.buildingCode})
+                {building.buildingName}
               </SelectItem>
             ))}
           </SelectContent>
