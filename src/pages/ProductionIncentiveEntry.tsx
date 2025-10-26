@@ -438,14 +438,21 @@ const ProductionIncentiveEntry = () => {
     const filteredNatures = getFilteredNatures();
     const selectedNatureData = filteredNatures.find(nature => nature._id === selectedNature);
     
-    // Special case: If production type is individual, nature has target.enabled = true,
-    // and current norms (individualTarget) equals produced qty, use target.value
+    // Base incentive amount - starts with target.value if conditions are met
+    let baseIncentiveAmount = 0;
+    
+    // If production type is individual, target is enabled, and produced qty meets/exceeds target
     if (productionType.toLowerCase() === 'individual' && 
         selectedNatureData?.target?.enabled === true && 
-        individualTarget === producedQty) {
-      const targetIncentive = parseFloat(selectedNatureData.target.value?.toString() || '0');
-      console.log('Using target.value as incentive:', targetIncentive);
-      return targetIncentive;
+        producedQty >= individualTarget && 
+        individualTarget > 0) {
+      baseIncentiveAmount = parseFloat(selectedNatureData.target.value?.toString() || '0');
+      console.log('Using target.value as base incentive:', baseIncentiveAmount);
+      
+      // If produced qty equals target exactly, return base amount only
+      if (producedQty === individualTarget) {
+        return baseIncentiveAmount;
+      }
     }
 
     // For customer incentive calculation, calculate target norms based on production type
@@ -573,6 +580,9 @@ const ProductionIncentiveEntry = () => {
     // Apply the original sign (negative or positive) to the final incentive
     finalIncentive = finalIncentive * extraNormsSign;
 
+    // Add base incentive amount (from target.value) if applicable
+    finalIncentive = finalIncentive + baseIncentiveAmount;
+
     console.log('Customer Calculation:', {
       extraNorms,
       absExtraNorms,
@@ -580,6 +590,7 @@ const ProductionIncentiveEntry = () => {
       additionalValues: applicableTier.additionalValues,
       totalIncentiveAmount,
       productionType,
+      baseIncentiveAmount,
       finalIncentive
     });
 
