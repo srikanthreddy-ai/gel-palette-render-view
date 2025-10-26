@@ -145,7 +145,8 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         return;
       }
 
-      const response = await fetch(`${API_CONFIG.BASE_URL}/ProductionDept`, {
+      // Fetch all buildings by requesting a large limit
+      const response = await fetch(`${API_CONFIG.BASE_URL}/ProductionDept?limit=1000`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
