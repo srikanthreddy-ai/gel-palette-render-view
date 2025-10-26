@@ -58,6 +58,8 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
     norms: "",
     startDate: "",
     endDate: "",
+    targetEnabled: false,
+    targetValue: "",
     incentives: [{ min: "", max: "", each: "", amount: "", additionalValues: false }],
   });
   const [buildings, setBuildings] = useState<Building[]>([]);
@@ -96,6 +98,8 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         norms: norm.norms?.toString() || "",
         startDate: norm.startDate ? new Date(norm.startDate).toISOString().split('T')[0] : "",
         endDate: norm.endDate ? new Date(norm.endDate).toISOString().split('T')[0] : "",
+        targetEnabled: (norm as any).targetEnabled || false,
+        targetValue: (norm as any).targetValue?.toString() || "",
         incentives: formattedIncentives,
       };
       
@@ -112,6 +116,8 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         norms: "",
         startDate: "",
         endDate: "",
+        targetEnabled: false,
+        targetValue: "",
         incentives: [{ min: "", max: "", each: "", amount: "", additionalValues: false }],
       });
     }
@@ -254,6 +260,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         ...formData,
         manpower: parseInt(formData.manpower) || 0,
         norms: parseInt(formData.norms) || 0,
+        targetValue: formData.targetEnabled && formData.targetValue ? parseFloat(formData.targetValue) : null,
         incentives: formattedIncentives,
       };
 
@@ -421,6 +428,34 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
             required
           />
         </div>
+      </div>
+
+      <div className="border rounded-lg p-4 space-y-3">
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="targetEnabled"
+            checked={formData.targetEnabled}
+            onChange={(e) => setFormData(prev => ({ ...prev, targetEnabled: e.target.checked }))}
+            className="w-4 h-4"
+          />
+          <Label htmlFor="targetEnabled" className="font-medium">Target Section</Label>
+        </div>
+        
+        {formData.targetEnabled && (
+          <div>
+            <Label htmlFor="targetValue">Target Value</Label>
+            <Input
+              id="targetValue"
+              name="targetValue"
+              type="number"
+              value={formData.targetValue}
+              onChange={handleInputChange}
+              placeholder="Enter target value"
+              step="0.01"
+            />
+          </div>
+        )}
       </div>
 
       <div>
