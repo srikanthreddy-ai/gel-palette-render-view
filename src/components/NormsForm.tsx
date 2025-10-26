@@ -60,16 +60,20 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
     endDate: "",
     targetEnabled: false,
     targetValue: "",
+    referenceNorm: "",
     incentives: [{ min: "", max: "", each: "", amount: "", additionalValues: false }],
   });
   const [buildings, setBuildings] = useState<Building[]>([]);
+  const [referenceNorms, setReferenceNorms] = useState<ProductionNature[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isBuildingsLoading, setIsBuildingsLoading] = useState(false);
+  const [isReferenceNormsLoading, setIsReferenceNormsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Fetch buildings first
+  // Fetch buildings and reference norms first
   useEffect(() => {
     fetchBuildings();
+    fetchReferenceNorms();
   }, []);
 
   // Set form data after buildings are loaded
@@ -100,6 +104,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         endDate: norm.endDate ? new Date(norm.endDate).toISOString().split('T')[0] : "",
         targetEnabled: (norm as any).targetEnabled || false,
         targetValue: (norm as any).targetValue?.toString() || "",
+        referenceNorm: (norm as any).referenceNorm || "",
         incentives: formattedIncentives,
       };
       
@@ -118,6 +123,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         endDate: "",
         targetEnabled: false,
         targetValue: "",
+        referenceNorm: "",
         incentives: [{ min: "", max: "", each: "", amount: "", additionalValues: false }],
       });
     }
@@ -172,6 +178,58 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
       });
     } finally {
       setIsBuildingsLoading(false);
+    }
+  };
+
+  const fetchReferenceNorms = async () => {
+    setIsReferenceNormsLoading(true);
+    console.log('Fetching reference norms for dropdown...');
+    
+    try {
+      const authToken = sessionStorage.getItem('authToken');
+      
+      if (!authToken) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Authentication token not found",
+        });
+        return;
+      }
+
+      const response = await fetch(`${API_CONFIG.BASE_URL}/ProductionNature`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Reference norms response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Reference norms data:', data);
+        // Filter out deleted norms
+        const availableNorms = data.data?.filter((norm: ProductionNature) => !norm.isDeleted) || [];
+        setReferenceNorms(availableNorms);
+        console.log('Available reference norms set:', availableNorms);
+      } else {
+        console.error('Reference norms API Error:', response.status, response.statusText);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch reference norms",
+        });
+      }
+    } catch (error) {
+      console.error('Fetch reference norms error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Unable to connect to the server",
+      });
+    } finally {
+      setIsReferenceNormsLoading(false);
     }
   };
 
@@ -261,6 +319,7 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
         manpower: parseInt(formData.manpower) || 0,
         norms: parseInt(formData.norms) || 0,
         targetValue: formData.targetEnabled && formData.targetValue ? parseFloat(formData.targetValue) : null,
+        referenceNorm: formData.referenceNorm || null,
         incentives: formattedIncentives,
       };
 
@@ -456,6 +515,26 @@ const NormsForm: React.FC<NormsFormProps> = ({ norm, onSave, onCancel }) => {
             />
           </div>
         )}
+      </div>
+
+      <div>
+        <Label htmlFor="referenceNorm">Reference Norms</Label>
+        <Select 
+          value={formData.referenceNorm} 
+          onValueChange={(value) => setFormData(prev => ({ ...prev, referenceNorm: value }))}
+          disabled={isReferenceNormsLoading}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={isReferenceNormsLoading ? "Loading reference norms..." : "Select a reference norm (optional)"} />
+          </SelectTrigger>
+          <SelectContent>
+            {referenceNorms.map((refNorm) => (
+              <SelectItem key={refNorm._id} value={refNorm._id}>
+                {refNorm.productionNature} - {refNorm.building_id?.buildingName} ({refNorm.productionCode})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
