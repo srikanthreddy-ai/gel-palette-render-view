@@ -405,7 +405,6 @@ const ViewAllowanceRecords = () => {
                   ) : (
                     <>
                       <TableHead className="text-white font-bold">Building</TableHead>
-                      <TableHead className="text-white font-bold">Nature</TableHead>
                       <TableHead className="text-white font-bold">Incentive Amount</TableHead>
                       <TableHead className="text-white font-bold">Date</TableHead>
                       <TableHead className="text-white font-bold">Shift</TableHead>
@@ -418,13 +417,13 @@ const ViewAllowanceRecords = () => {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={recordType === 'allowance' ? 8 : 9} className="text-center py-8">
+                    <TableCell colSpan={recordType === 'allowance' ? 8 : 8} className="text-center py-8">
                       Loading {recordType} records...
                     </TableCell>
                   </TableRow>
                 ) : records.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={recordType === 'allowance' ? 8 : 9} className="text-center py-8">
+                    <TableCell colSpan={recordType === 'allowance' ? 8 : 8} className="text-center py-8">
                       {fromDate && toDate ? `No ${recordType} records found for the selected date range` : `Select date range and click search to view ${recordType} records`}
                     </TableCell>
                   </TableRow>
@@ -445,7 +444,6 @@ const ViewAllowanceRecords = () => {
                       ) : (
                         <>
                           <TableCell>{record.building}</TableCell>
-                          <TableCell>{record.nature}</TableCell>
                           <TableCell className="font-medium">₹{record.amount}</TableCell>
                           <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
                           <TableCell>{record.shift}</TableCell>
