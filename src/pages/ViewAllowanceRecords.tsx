@@ -408,7 +408,6 @@ const ViewAllowanceRecords = () => {
                       <TableHead className="text-white font-bold">Incentive Amount</TableHead>
                       <TableHead className="text-white font-bold">Date</TableHead>
                       <TableHead className="text-white font-bold">Shift</TableHead>
-                      <TableHead className="text-white font-bold">Produced Qty</TableHead>
                       <TableHead className="text-white font-bold">Norms</TableHead>
                     </>
                   )}
@@ -417,13 +416,13 @@ const ViewAllowanceRecords = () => {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={recordType === 'allowance' ? 8 : 8} className="text-center py-8">
+                    <TableCell colSpan={recordType === 'allowance' ? 8 : 7} className="text-center py-8">
                       Loading {recordType} records...
                     </TableCell>
                   </TableRow>
                 ) : records.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={recordType === 'allowance' ? 8 : 8} className="text-center py-8">
+                    <TableCell colSpan={recordType === 'allowance' ? 8 : 7} className="text-center py-8">
                       {fromDate && toDate ? `No ${recordType} records found for the selected date range` : `Select date range and click search to view ${recordType} records`}
                     </TableCell>
                   </TableRow>
@@ -447,7 +446,6 @@ const ViewAllowanceRecords = () => {
                           <TableCell className="font-medium">₹{record.amount}</TableCell>
                           <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
                           <TableCell>{record.shift}</TableCell>
-                          <TableCell>{record.producedQty}</TableCell>
                           <TableCell>{record.norms}</TableCell>
                         </>
                       )}
