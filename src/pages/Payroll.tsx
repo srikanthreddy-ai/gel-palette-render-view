@@ -25,9 +25,13 @@ import { API_CONFIG } from '@/config/api';
 interface PayrollRecord {
   employeeId: string;
   employeeName: string;
-  totalAllowance: number;
-  totalIncentive: number;
-  totalPayroll: number;
+  buildingName: string;
+  natureName: string;
+  productionDate: string;
+  workedHrs: number;
+  shiftHrs: number;
+  amount: number;
+  type: 'allowance' | 'incentive';
 }
 
 const Payroll = () => {
@@ -91,54 +95,37 @@ const Payroll = () => {
         const allowanceData = await allowanceResponse.json();
         const incentiveData = await incentiveResponse.json();
 
-        // Process and combine data by employee
-        const employeeMap = new Map<string, PayrollRecord>();
+        const records: PayrollRecord[] = [];
 
         // Process allowances
         (allowanceData.data || []).forEach((record: any) => {
-          const empId = record.empCode;
-          const empName = record.employee_id?.fullName || 'Unknown';
-          const amount = parseFloat(record.amount) || 0;
-
-          if (!employeeMap.has(empId)) {
-            employeeMap.set(empId, {
-              employeeId: empId,
-              employeeName: empName,
-              totalAllowance: 0,
-              totalIncentive: 0,
-              totalPayroll: 0,
-            });
-          }
-
-          const employee = employeeMap.get(empId)!;
-          employee.totalAllowance += amount;
+          records.push({
+            employeeId: record.empCode,
+            employeeName: record.employee_id?.fullName || 'Unknown',
+            buildingName: record.building_id?.buildingName || 'N/A',
+            natureName: 'N/A',
+            productionDate: record.productionDate ? format(new Date(record.productionDate), 'dd-MM-yyyy') : 'N/A',
+            workedHrs: 0,
+            shiftHrs: 0,
+            amount: parseFloat(record.amount) || 0,
+            type: 'allowance',
+          });
         });
 
         // Process incentives
         (incentiveData.data || []).forEach((record: any) => {
-          const empId = record.employeeCode || record.empCode;
-          const empName = record.employee_id?.fullName || 'Unknown';
-          const amount = parseFloat(record.incentiveAmount) || 0;
-
-          if (!employeeMap.has(empId)) {
-            employeeMap.set(empId, {
-              employeeId: empId,
-              employeeName: empName,
-              totalAllowance: 0,
-              totalIncentive: 0,
-              totalPayroll: 0,
-            });
-          }
-
-          const employee = employeeMap.get(empId)!;
-          employee.totalIncentive += amount;
+          records.push({
+            employeeId: record.employeeCode || record.empCode,
+            employeeName: record.employee_id?.fullName || 'Unknown',
+            buildingName: record.building_id?.buildingName || 'N/A',
+            natureName: record.nature_id?.productionNature || 'N/A',
+            productionDate: record.productionDate ? format(new Date(record.productionDate), 'dd-MM-yyyy') : 'N/A',
+            workedHrs: record.workedHrs || 0,
+            shiftHrs: record.shiftHrs || 0,
+            amount: parseFloat(record.incentiveAmount) || 0,
+            type: 'incentive',
+          });
         });
-
-        // Calculate total payroll
-        const records = Array.from(employeeMap.values()).map(emp => ({
-          ...emp,
-          totalPayroll: emp.totalAllowance + emp.totalIncentive,
-        }));
 
         setPayrollRecords(records);
 
@@ -178,25 +165,27 @@ const Payroll = () => {
     }
 
     // Create CSV content
-    const headers = ['Employee ID', 'Employee Name', 'Total Allowance', 'Total Incentive', 'Total Payroll'];
+    const headers = ['Employee ID', 'Employee Name', 'Building', 'Nature', 'Production Date', 'Worked Hrs', 'Shift Hrs', 'Amount', 'Type'];
     const csvRows = [headers.join(',')];
 
     payrollRecords.forEach(record => {
       const row = [
         record.employeeId,
-        `"${record.employeeName}"`, // Wrap in quotes in case name has commas
-        record.totalAllowance.toFixed(2),
-        record.totalIncentive.toFixed(2),
-        record.totalPayroll.toFixed(2),
+        `"${record.employeeName}"`,
+        `"${record.buildingName}"`,
+        `"${record.natureName}"`,
+        record.productionDate,
+        record.workedHrs,
+        record.shiftHrs,
+        record.amount.toFixed(2),
+        record.type,
       ];
       csvRows.push(row.join(','));
     });
 
     // Add totals row
-    const totalAllowance = payrollRecords.reduce((sum, r) => sum + r.totalAllowance, 0);
-    const totalIncentive = payrollRecords.reduce((sum, r) => sum + r.totalIncentive, 0);
-    const totalPayroll = payrollRecords.reduce((sum, r) => sum + r.totalPayroll, 0);
-    csvRows.push(['', 'TOTAL', totalAllowance.toFixed(2), totalIncentive.toFixed(2), totalPayroll.toFixed(2)].join(','));
+    const totalAmount = payrollRecords.reduce((sum, r) => sum + r.amount, 0);
+    csvRows.push(['', '', '', '', '', '', 'TOTAL', totalAmount.toFixed(2), ''].join(','));
 
     const csvContent = csvRows.join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -218,10 +207,12 @@ const Payroll = () => {
   };
 
   const calculateTotals = () => {
+    const totalAllowance = payrollRecords.filter(r => r.type === 'allowance').reduce((sum, r) => sum + r.amount, 0);
+    const totalIncentive = payrollRecords.filter(r => r.type === 'incentive').reduce((sum, r) => sum + r.amount, 0);
     return {
-      totalAllowance: payrollRecords.reduce((sum, r) => sum + r.totalAllowance, 0),
-      totalIncentive: payrollRecords.reduce((sum, r) => sum + r.totalIncentive, 0),
-      totalPayroll: payrollRecords.reduce((sum, r) => sum + r.totalPayroll, 0),
+      totalAllowance,
+      totalIncentive,
+      totalPayroll: totalAllowance + totalIncentive,
     };
   };
 
@@ -351,42 +342,49 @@ const Payroll = () => {
                   <TableHead className="text-white font-bold">#</TableHead>
                   <TableHead className="text-white font-bold">Employee ID</TableHead>
                   <TableHead className="text-white font-bold">Employee Name</TableHead>
-                  <TableHead className="text-white font-bold">Total Allowance</TableHead>
-                  <TableHead className="text-white font-bold">Total Incentive</TableHead>
-                  <TableHead className="text-white font-bold">Total Payroll</TableHead>
+                  <TableHead className="text-white font-bold">Building</TableHead>
+                  <TableHead className="text-white font-bold">Nature</TableHead>
+                  <TableHead className="text-white font-bold">Production Date</TableHead>
+                  <TableHead className="text-white font-bold">Worked Hrs</TableHead>
+                  <TableHead className="text-white font-bold">Shift Hrs</TableHead>
+                  <TableHead className="text-white font-bold">Amount</TableHead>
+                  <TableHead className="text-white font-bold">Type</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={10} className="text-center py-8">
                       Loading payroll records...
                     </TableCell>
                   </TableRow>
                 ) : payrollRecords.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={10} className="text-center py-8">
                       {fromDate && toDate ? 'No payroll records found for the selected date range' : 'Select date range and click "Generate Report" to view payroll data'}
                     </TableCell>
                   </TableRow>
                 ) : (
                   <>
                     {payrollRecords.map((record, index) => (
-                      <TableRow key={record.employeeId} className={index % 2 === 1 ? "bg-red-50" : ""}>
+                      <TableRow key={`${record.employeeId}-${index}`} className={index % 2 === 1 ? "bg-red-50" : ""}>
                         <TableCell className="font-medium">{index + 1}</TableCell>
                         <TableCell className="font-medium">{record.employeeId}</TableCell>
                         <TableCell>{record.employeeName}</TableCell>
-                        <TableCell className="font-medium">₹{record.totalAllowance.toFixed(2)}</TableCell>
-                        <TableCell className="font-medium">₹{record.totalIncentive.toFixed(2)}</TableCell>
-                        <TableCell className="font-bold">₹{record.totalPayroll.toFixed(2)}</TableCell>
+                        <TableCell>{record.buildingName}</TableCell>
+                        <TableCell>{record.natureName}</TableCell>
+                        <TableCell>{record.productionDate}</TableCell>
+                        <TableCell className="text-center">{record.workedHrs}</TableCell>
+                        <TableCell className="text-center">{record.shiftHrs}</TableCell>
+                        <TableCell className="font-medium">₹{record.amount.toFixed(2)}</TableCell>
+                        <TableCell className="capitalize">{record.type}</TableCell>
                       </TableRow>
                     ))}
                     {/* Totals Row */}
                     <TableRow className="bg-gray-800 text-white font-bold">
-                      <TableCell colSpan={3} className="text-white font-bold text-right">TOTAL</TableCell>
-                      <TableCell className="text-white font-bold">₹{totals.totalAllowance.toFixed(2)}</TableCell>
-                      <TableCell className="text-white font-bold">₹{totals.totalIncentive.toFixed(2)}</TableCell>
-                      <TableCell className="text-white font-bold">₹{totals.totalPayroll.toFixed(2)}</TableCell>
+                      <TableCell colSpan={8} className="text-white font-bold text-right">TOTAL</TableCell>
+                      <TableCell className="text-white font-bold">₹{(totals.totalAllowance + totals.totalIncentive).toFixed(2)}</TableCell>
+                      <TableCell></TableCell>
                     </TableRow>
                   </>
                 )}
