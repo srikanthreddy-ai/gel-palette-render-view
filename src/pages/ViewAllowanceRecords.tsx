@@ -81,6 +81,8 @@ const ViewAllowanceRecords = () => {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [records, setRecords] = useState<Record[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [fromDateOpen, setFromDateOpen] = useState(false);
+  const [toDateOpen, setToDateOpen] = useState(false);
   const { toast } = useToast();
 
   // Fetch buildings and shifts on component mount
@@ -270,7 +272,7 @@ const ViewAllowanceRecords = () => {
             </div>
             <div>
               <Label htmlFor="fromDate">From Date</Label>
-              <Popover>
+              <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant={"outline"}
@@ -287,7 +289,10 @@ const ViewAllowanceRecords = () => {
                   <CalendarComponent
                     mode="single"
                     selected={fromDate}
-                    onSelect={setFromDate}
+                    onSelect={(date) => {
+                      setFromDate(date);
+                      setFromDateOpen(false);
+                    }}
                     initialFocus
                     className={cn("p-3 pointer-events-auto")}
                   />
@@ -296,7 +301,7 @@ const ViewAllowanceRecords = () => {
             </div>
             <div>
               <Label htmlFor="toDate">To Date</Label>
-              <Popover>
+              <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant={"outline"}
@@ -313,7 +318,10 @@ const ViewAllowanceRecords = () => {
                   <CalendarComponent
                     mode="single"
                     selected={toDate}
-                    onSelect={setToDate}
+                    onSelect={(date) => {
+                      setToDate(date);
+                      setToDateOpen(false);
+                    }}
                     initialFocus
                     className={cn("p-3 pointer-events-auto")}
                   />
