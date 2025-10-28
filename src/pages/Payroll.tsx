@@ -41,6 +41,8 @@ const Payroll = () => {
   const [toDateOpen, setToDateOpen] = useState(false);
   const [payrollRecords, setPayrollRecords] = useState<PayrollRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
   const { toast } = useToast();
 
   const handleSearch = async () => {
@@ -100,7 +102,7 @@ const Payroll = () => {
         // Process allowances
         (allowanceData.data || []).forEach((record: any) => {
           records.push({
-            employeeId: record.empCode,
+            employeeId: record.empCode || 'N/A',
             employeeName: record.employee_id?.fullName || 'Unknown',
             buildingName: record.building_id?.buildingName || 'N/A',
             natureName: 'N/A',
@@ -115,7 +117,7 @@ const Payroll = () => {
         // Process incentives
         (incentiveData.data || []).forEach((record: any) => {
           records.push({
-            employeeId: record.employeeCode || record.empCode,
+            employeeId: record.employeeCode || record.empCode || 'N/A',
             employeeName: record.employee_id?.fullName || 'Unknown',
             buildingName: record.building_id?.buildingName || 'N/A',
             natureName: record.nature_id?.productionNature || 'N/A',
@@ -128,6 +130,7 @@ const Payroll = () => {
         });
 
         setPayrollRecords(records);
+        setCurrentPage(1);
 
         if (records.length === 0) {
           toast({
@@ -207,8 +210,8 @@ const Payroll = () => {
   };
 
   const calculateTotals = () => {
-    const totalAllowance = payrollRecords.filter(r => r.type === 'allowance').reduce((sum, r) => sum + r.amount, 0);
-    const totalIncentive = payrollRecords.filter(r => r.type === 'incentive').reduce((sum, r) => sum + r.amount, 0);
+    const totalAllowance = payrollRecords.filter(r => r.type === 'allowance').reduce((sum, r) => sum + (r.amount || 0), 0);
+    const totalIncentive = payrollRecords.filter(r => r.type === 'incentive').reduce((sum, r) => sum + (r.amount || 0), 0);
     return {
       totalAllowance,
       totalIncentive,
@@ -217,6 +220,17 @@ const Payroll = () => {
   };
 
   const totals = calculateTotals();
+
+  // Pagination calculations
+  const totalPages = Math.ceil(payrollRecords.length / recordsPerPage);
+  const startIndex = (currentPage - 1) * recordsPerPage;
+  const endIndex = startIndex + recordsPerPage;
+  const currentRecords = payrollRecords.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="p-6">
@@ -366,9 +380,9 @@ const Payroll = () => {
                   </TableRow>
                 ) : (
                   <>
-                    {payrollRecords.map((record, index) => (
+                    {currentRecords.map((record, index) => (
                       <TableRow key={`${record.employeeId}-${index}`} className={index % 2 === 1 ? "bg-red-50" : ""}>
-                        <TableCell className="font-medium">{index + 1}</TableCell>
+                        <TableCell className="font-medium">{startIndex + index + 1}</TableCell>
                         <TableCell className="font-medium">{record.employeeId}</TableCell>
                         <TableCell>{record.employeeName}</TableCell>
                         <TableCell>{record.buildingName}</TableCell>
@@ -376,7 +390,7 @@ const Payroll = () => {
                         <TableCell>{record.productionDate}</TableCell>
                         <TableCell className="text-center">{record.workedHrs}</TableCell>
                         <TableCell className="text-center">{record.shiftHrs}</TableCell>
-                        <TableCell className="font-medium">₹{record.amount.toFixed(2)}</TableCell>
+                        <TableCell className="font-medium">₹{(record.amount || 0).toFixed(2)}</TableCell>
                         <TableCell className="capitalize">{record.type}</TableCell>
                       </TableRow>
                     ))}
@@ -391,6 +405,44 @@ const Payroll = () => {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-muted-foreground">
+                Showing {startIndex + 1} to {Math.min(endIndex, payrollRecords.length)} of {payrollRecords.length} records
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handlePageChange(page)}
+                    className={currentPage === page ? "bg-blue-600 hover:bg-blue-700" : ""}
+                  >
+                    {page}
+                  </Button>
+                ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
