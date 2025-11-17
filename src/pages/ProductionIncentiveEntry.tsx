@@ -442,7 +442,7 @@ const ProductionIncentiveEntry = () => {
     let baseIncentiveAmount = 0;
     
     // If production type is individual, target is enabled, and produced qty meets/exceeds target
-    if (productionType.toLowerCase() === 'individual' && 
+    if ( ['individual', 'group'].includes(productionType.toLowerCase()) && 
         selectedNatureData?.target?.enabled === true && 
         producedQty >= individualTarget && 
         individualTarget > 0) {
