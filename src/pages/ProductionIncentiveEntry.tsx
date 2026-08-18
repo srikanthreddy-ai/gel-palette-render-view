@@ -25,7 +25,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Search, Plus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, Search, Plus, Trash2, ChevronLeft, ChevronRight, Pencil, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { API_CONFIG } from '@/config/api';
@@ -109,7 +109,7 @@ const ProductionIncentiveEntry = () => {
   const [selectedNature, setSelectedNature] = useState('');
   const [selectedShift, setSelectedShift] = useState('');
   const [customerSearch, setCustomerSearch] = useState('');
-  
+
   // Auto-populated fields (now editable)
   const [productionType, setProductionType] = useState('');
   const [manpower, setManpower] = useState('');
@@ -121,20 +121,21 @@ const ProductionIncentiveEntry = () => {
   const [originalNorms, setOriginalNorms] = useState(0); // Store original norms for calculation
   const [originalManpower, setOriginalManpower] = useState(1); // Store original manpower for calculation
   const [originalShiftHrs, setOriginalShiftHrs] = useState(1); // Store original shift hours for calculation
-  
+
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [buildings, setBuildings] = useState<NatureCategory[]>([]);
   const [natures, setNatures] = useState<NatureCategory[]>([]);
   const [allNatureData, setAllNatureData] = useState<any[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedCustomers, setSelectedCustomers] = useState<SelectedCustomer[]>([]);
+  const [editingEmpCode, setEditingEmpCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  
+
   const { toast } = useToast();
 
   const fetchNatureAndBuildings = async () => {
@@ -150,10 +151,10 @@ const ProductionIncentiveEntry = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Nature and Buildings data:', data);
-        
+
         const allData = data.data || [];
         setAllNatureData(allData);
-        
+
         // Buildings are the top-level items
         const buildingsData = allData.map((building: any) => ({
           _id: building.id,
@@ -161,7 +162,7 @@ const ProductionIncentiveEntry = () => {
           category: 'building',
           isDeleted: false
         }));
-        
+
         // Natures are within productionNatures array of each building
         const naturesData: any[] = [];
         allData.forEach((building: any) => {
@@ -177,10 +178,10 @@ const ProductionIncentiveEntry = () => {
             });
           }
         });
-        
+
         console.log('Processed buildings:', buildingsData);
         console.log('Processed natures:', naturesData);
-        
+
         setBuildings(buildingsData);
         setNatures(naturesData);
       } else {
@@ -234,25 +235,51 @@ const ProductionIncentiveEntry = () => {
   };
 
   const searchEmployees = async (query: string) => {
-    if (query.length < 2) {
+    const searchValue = query.trim();
+
+    if (searchValue.length < 2) {
       setEmployees([]);
       return;
     }
 
     setSearchLoading(true);
+
     try {
       const authToken = sessionStorage.getItem('authToken');
-      const response = await fetch(`${API_CONFIG.BASE_URL}/employeesList?empCode=${query}`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
+
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/employeesList?empCode=${encodeURIComponent(searchValue)}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Employees search result:', data);
-        setEmployees(data.data || []);
+
+        const employeeList: Employee[] = data.data || [];
+
+        console.log('Employees search result:', employeeList);
+
+        setEmployees(employeeList);
+
+        // Find exact employee-code match
+        const exactEmployee = employeeList.find(
+          (employee) =>
+            employee.empCode.toLowerCase() === searchValue.toLowerCase()
+        );
+
+        // Automatically add employee when exact code is entered
+        if (exactEmployee) {
+          addCustomerToTable(exactEmployee);
+
+          // Clear search box and results
+          setCustomerSearch('');
+          setEmployees([]);
+        }
       } else {
         console.error('Failed to search employees:', response.status);
         setEmployees([]);
@@ -264,6 +291,7 @@ const ProductionIncentiveEntry = () => {
       setSearchLoading(false);
     }
   };
+
 
   const handleBuildingChange = (buildingId: string) => {
     setSelectedBuilding(buildingId);
@@ -283,12 +311,12 @@ const ProductionIncentiveEntry = () => {
 
   const getFilteredNatures = () => {
     if (!selectedBuilding) return [];
-    
+
     // Find the selected building data
     const selectedBuildingData = allNatureData.find(building => building.id === selectedBuilding);
-    
+
     if (!selectedBuildingData || !selectedBuildingData.productionNatures) return [];
-    
+
     // Return production natures for the selected building
     return selectedBuildingData.productionNatures.map((nature: any) => ({
       _id: nature.id,
@@ -301,56 +329,56 @@ const ProductionIncentiveEntry = () => {
 
   const calculatePerHeadHour = () => {
     if (!selectedNature || !selectedShift) return 0;
-    
+
     // Use the editable Default Norms field value
     const defaultNorms = parseFloat(norms) || 0;
-    
+
     // For group type, use original manpower (don't update on manpower changes)
     // For individual type, use current manpower value
-    const manPower = productionType.toLowerCase() === 'group' 
-      ? originalManpower 
+    const manPower = productionType.toLowerCase() === 'group'
+      ? originalManpower
       : (parseInt(manpower) || 1);
-    
+
     // Always use shiftHrs (original Production Hrs from shift) for Per Head Hour calculation
     // This ensures Per Head Hour stays constant even when Production Hrs (workedHrs) changes
     const productionHrs = parseFloat(shiftHrs) || 1;
-    
+
     const perHeadHour = defaultNorms / manPower / productionHrs;
     return perHeadHour;
   };
 
   const calculateTargetNormsForGroup = (workedHrs: number, inputManpower: number) => {
     const currentProductionType = productionType.toLowerCase();
-    
+
     if (currentProductionType === 'individual') {
       // For individual: (Default Norms / Production Hrs) * Worked Hrs
       const defaultNorms = parseFloat(norms) || 0;
       const productionHrs = parseFloat(shiftHrs) || 1;
       const workedHrsValue = parseFloat(workedHrs.toString()) || 0;
-      
+
       const targetNorms = (defaultNorms / productionHrs) * workedHrsValue;
-      
+
       console.log('=== Individual Target Norms Calculation ===');
       console.log('Default Norms:', defaultNorms);
       console.log('Production Hrs (Shift Hrs):', productionHrs);
       console.log('Worked Hrs:', workedHrsValue);
       console.log('Calculated Target Norms:', targetNorms);
-      
+
       return targetNorms;
     } else {
       // For group: Per Head Hour * Current Man power * Production hrs
       const perHeadHour = calculatePerHeadHour();
       const currentManPower = inputManpower || 1;
       const productionHrs = parseFloat(workedHrs.toString()) || 1;
-      
+
       const targetNorms = perHeadHour * currentManPower * productionHrs;
-      
+
       console.log('=== Group Target Norms Calculation ===');
       console.log('Per Head Hour:', perHeadHour);
       console.log('Current Man Power:', currentManPower);
       console.log('Production Hrs:', productionHrs);
       console.log('Calculated Target Norms:', targetNorms);
-      
+
       return targetNorms;
     }
   };
@@ -366,7 +394,7 @@ const ProductionIncentiveEntry = () => {
 
   const handleNatureChange = (natureId: string) => {
     setSelectedNature(natureId);
-    
+
     // Find the selected nature from filtered natures
     const filteredNatures = getFilteredNatures();
     const selectedNatureData = filteredNatures.find(nature => nature._id === natureId);
@@ -374,12 +402,12 @@ const ProductionIncentiveEntry = () => {
       setProductionType(selectedNatureData.productionType);
       const originalManpowerValue = selectedNatureData.manpower || 1;
       const originalNormsValue = selectedNatureData.norms || 0;
-      
+
       setManpower(originalManpowerValue.toString());
       setNorms(originalNormsValue.toString());
       setOriginalNorms(originalNormsValue);
       setOriginalManpower(originalManpowerValue);
-      
+
       // If production type is group, calculate target norms based on the formula
       if (selectedNatureData.productionType.toLowerCase() === 'group') {
         const currentWorkedHrs = parseFloat(workedHrs) || originalShiftHrs;
@@ -393,7 +421,7 @@ const ProductionIncentiveEntry = () => {
 
   const handleShiftChange = (shiftId: string) => {
     setSelectedShift(shiftId);
-    
+
     // Find the selected shift and auto-populate shift hours
     const selectedShiftData = shifts.find(shift => shift._id === shiftId);
     if (selectedShiftData) {
@@ -408,16 +436,16 @@ const ProductionIncentiveEntry = () => {
   const calculateIndividualTargetNorms = (customerWorkedHrs: number) => {
     const currentNorms = parseFloat(norms) || 0;
     const productionHrs = originalShiftHrs; // Always use Production Hrs from shift selection
-    
+
     // Individual Target = (Default Norms / Production Hrs) * Worked Hrs
     const individualTarget = (currentNorms / productionHrs) * customerWorkedHrs;
-    
+
     console.log('=== Individual Target Calculation ===');
     console.log('Default Norms:', currentNorms);
     console.log('Production Hrs:', productionHrs);
     console.log('Customer Worked Hrs:', customerWorkedHrs);
     console.log('Individual Target:', individualTarget);
-    
+
     return individualTarget;
   };
 
@@ -437,18 +465,18 @@ const ProductionIncentiveEntry = () => {
     // Get nature data once
     const filteredNatures = getFilteredNatures();
     const selectedNatureData = filteredNatures.find(nature => nature._id === selectedNature);
-    
+
     // Base incentive amount - starts with target.value if conditions are met
     let baseIncentiveAmount = 0;
-    
+
     // If production type is individual, target is enabled, and produced qty meets/exceeds target
-    if ( ['individual', 'group'].includes(productionType.toLowerCase()) && 
-        selectedNatureData?.target?.enabled === true && 
-        producedQty >= individualTarget && 
-        individualTarget > 0) {
+    if (['individual', 'group'].includes(productionType.toLowerCase()) &&
+      selectedNatureData?.target?.enabled === true &&
+      producedQty >= individualTarget &&
+      individualTarget > 0) {
       baseIncentiveAmount = parseFloat(selectedNatureData.target.value?.toString() || '0');
       console.log('Using target.value as base incentive:', baseIncentiveAmount);
-      
+
       // If produced qty equals target exactly, return base amount only
       if (producedQty === individualTarget) {
         return baseIncentiveAmount;
@@ -458,7 +486,7 @@ const ProductionIncentiveEntry = () => {
     // For customer incentive calculation, calculate target norms based on production type
     const netProduction = parseFloat(producedQty.toString()) || 0;
     let customerTargetNorms = individualTarget;
-    
+
     // For group production type: Target Norms = perHeadHour * Current Man Power * Production Hrs
     if (productionType.toLowerCase() === 'group') {
       const perHeadHour = calculatePerHeadHour();
@@ -467,11 +495,11 @@ const ProductionIncentiveEntry = () => {
       customerTargetNorms = perHeadHour * currentManPower * productionHrs;
       console.log('Group Customer Target Norms: perHeadHour:', perHeadHour, 'currentManPower:', currentManPower, 'productionHrs:', productionHrs, 'result:', customerTargetNorms);
     }
-    
+
     const extraNorms = netProduction - customerTargetNorms;
     const extraNormsSign = extraNorms >= 0 ? 1 : -1; // Store the sign
     const absExtraNorms = Math.abs(extraNorms); // Use absolute value for calculations
-    
+
     console.log('Customer incentive - Net Production:', netProduction, 'Customer Target Norms:', customerTargetNorms);
     console.log('Extra norms:', extraNorms, 'Absolute Extra Norms:', absExtraNorms);
 
@@ -491,11 +519,11 @@ const ProductionIncentiveEntry = () => {
 
     // Sort incentive tiers by min value to ensure proper order
     const incentiveTiers = [...selectedNatureData.incentives].sort((a, b) => a.min - b.min);
-    
+
     // Find the tier that contains the absExtraNorms
     let applicableTier = null;
     console.log('Checking tiers for absExtraNorms:', absExtraNorms, 'extraNormsSign:', extraNormsSign);
-    
+
     // For negative extra norms, always use the first tier from array (index 0)
     if (extraNormsSign === -1) {
       applicableTier = incentiveTiers[0];
@@ -533,16 +561,16 @@ const ProductionIncentiveEntry = () => {
       for (const tier of incentiveTiers) {
         // Stop when we reach the applicable tier
         if (tier.min > applicableTier.min) break;
-        
+
         // Skip invalid tiers
         if (tier.amount === null || tier.each === null) continue;
 
         const tierMin = tier.min;
         const tierMax = tier.max;
-        
+
         // Calculate the portion of norms that fall within this tier
         let tierNorms = 0;
-        
+
         if (tierMax === null) {
           // This is the highest tier, use all remaining norms
           tierNorms = remainingNorms;
@@ -555,9 +583,9 @@ const ProductionIncentiveEntry = () => {
         if (tierNorms > 0) {
           const tierIncentive = (tierNorms / tier.each) * tier.amount;
           totalIncentiveAmount += tierIncentive;
-          
+
           console.log(`Tier ${tier.min}-${tier.max}: norms=${tierNorms}, incentive=${tierIncentive}`);
-          
+
           remainingNorms -= tierNorms;
           if (remainingNorms <= 0) break;
         }
@@ -570,7 +598,7 @@ const ProductionIncentiveEntry = () => {
 
     // Apply proportional calculation only for group production type
     let finalIncentive = totalIncentiveAmount;
-    
+
     if (productionType.toLowerCase() === 'group') {
       const currentProductionHrs = parseFloat(workedHrs) || originalShiftHrs || 8;
       const workedHoursRatio = customerWorkedHrs / currentProductionHrs;
@@ -604,11 +632,11 @@ const ProductionIncentiveEntry = () => {
 
   const handleManpowerChange = (value: string) => {
     setManpower(value);
-    
+
     // Recalculate employee norms based on new manpower and original shift hours (Production Hrs from Incentive Entry)
     const newManpower = parseInt(value) || 1;
     const productionHrs = originalShiftHrs; // Always use Production Hrs from shift selection
-    
+
     if (originalNorms > 0 && originalManpower > 0 && originalShiftHrs > 0) {
       if (productionType.toLowerCase() === 'group') {
         // For group production type, use current Production Hrs from form
@@ -627,7 +655,7 @@ const ProductionIncentiveEntry = () => {
 
   const handleWorkedHrsChange = (value: string) => {
     setWorkedHrs(value);
-    
+
     // For group production type, recalculate Target Norms when Production Hrs changes
     if (productionType.toLowerCase() === 'group') {
       const currentWorkedHrs = parseFloat(value) || 1;
@@ -641,7 +669,7 @@ const ProductionIncentiveEntry = () => {
     // Use setTimeout to ensure state updates are processed first
     setTimeout(() => {
       const individualTargetValue = parseInt(employeeNorms) || 0;
-      setSelectedCustomers(prev => 
+      setSelectedCustomers(prev =>
         prev.map(customer => {
           const calculatedIncentive = calculateCustomerIncentive(individualTargetValue, customer.producedQty, customer.workedHrs);
           return {
@@ -675,7 +703,7 @@ const ProductionIncentiveEntry = () => {
     // Calculate individual target based on production type
     const customerWorkedHrs = parseFloat(workedHrs) || 0;
     let individualTargetValue;
-    
+
     if (productionType.toLowerCase() === 'individual') {
       individualTargetValue = calculateIndividualTargetNorms(customerWorkedHrs);
     } else {
@@ -684,7 +712,7 @@ const ProductionIncentiveEntry = () => {
       const currentWorkedHrs = parseFloat(workedHrs) || 1;
       individualTargetValue = calculateTargetNormsForGroup(currentWorkedHrs, currentManpower);
     }
-    
+
     // Get actual produced quantity from Net Production input
     const actualProducedQty = parseFloat(producedQty) || 0;
     const calculatedIncentive = calculateCustomerIncentive(individualTargetValue, actualProducedQty, parseFloat(workedHrs) || 0);
@@ -707,22 +735,38 @@ const ProductionIncentiveEntry = () => {
   const removeCustomerFromTable = (empCode: string) => {
     setSelectedCustomers(prev => prev.filter(customer => customer.empCode !== empCode));
   };
+  const handleEditCustomer = (empCode: string) => {
+    setEditingEmpCode(empCode);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEmpCode(null);
+  };
+
+  const handleSaveCustomer = (empCode: string) => {
+    setEditingEmpCode(null);
+
+    toast({
+      title: "Updated",
+      description: "Employee details updated successfully",
+    });
+  };
 
   const updateCustomerField = (empCode: string, field: keyof SelectedCustomer, value: number) => {
-    setSelectedCustomers(prev => 
+    setSelectedCustomers(prev =>
       prev.map(customer => {
         if (customer.empCode === empCode) {
           const updatedCustomer = { ...customer, [field]: value };
-          
+
           // For individual production type, recalculate target when worked hours change
           if (field === 'workedHrs') {
             let newIndividualTarget = customer.individualTarget;
-            
+
             if (productionType.toLowerCase() === 'individual') {
               // Recalculate individual target: Default Norms/Production Hrs * Worked Hrs
               newIndividualTarget = calculateIndividualTargetNorms(value);
             }
-            
+
             const newIncentive = calculateCustomerIncentive(newIndividualTarget, updatedCustomer.producedQty, value);
             return {
               ...updatedCustomer,
@@ -730,7 +774,7 @@ const ProductionIncentiveEntry = () => {
               incentive: newIncentive
             };
           }
-          
+
           // If produced qty changed, recalculate incentive
           if (field === 'producedQty') {
             const newIncentive = calculateCustomerIncentive(updatedCustomer.individualTarget, value, updatedCustomer.workedHrs);
@@ -739,7 +783,7 @@ const ProductionIncentiveEntry = () => {
               incentive: newIncentive
             };
           }
-          
+
           return updatedCustomer;
         }
         return customer;
@@ -762,17 +806,17 @@ const ProductionIncentiveEntry = () => {
     }
 
     setIsLoading(true);
-    
+
     try {
       const authToken = sessionStorage.getItem('authToken');
-      
+
       // Get selected nature and shift objects for additional data
       const selectedNatureData = natures.find(nature => nature._id === selectedNature);
       const selectedShiftData = shifts.find(shift => shift._id === selectedShift);
-      
+
       let successCount = 0;
       let errorCount = 0;
-      
+
       // Send data for each customer one by one
       for (const customer of selectedCustomers) {
         const payload = {
@@ -828,7 +872,7 @@ const ProductionIncentiveEntry = () => {
           title: "Success",
           description: `Time sheets created successfully for all ${successCount} customers`,
         });
-        
+
         // Reset form
         setProductionDate(null);
         setSelectedBuilding('');
@@ -885,12 +929,12 @@ const ProductionIncentiveEntry = () => {
     const loadData = async () => {
       setIsLoading(true);
       console.log('Loading dropdown data...');
-      
+
       await Promise.all([
         fetchShifts(),
         fetchNatureAndBuildings()
       ]);
-      
+
       setIsLoading(false);
     };
 
@@ -918,8 +962,8 @@ const ProductionIncentiveEntry = () => {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {productionDate ? 
-                      format(productionDate, "dd-MM-yyyy") : 
+                    {productionDate ?
+                      format(productionDate, "dd-MM-yyyy") :
                       "dd-mm-yyyy"
                     }
                   </Button>
@@ -1000,8 +1044,8 @@ const ProductionIncentiveEntry = () => {
             {productionType.toLowerCase() === 'group' && (
               <div className="space-y-2">
                 <Label>Per Head Hour</Label>
-                <Input 
-                  value={calculatePerHeadHour().toFixed(2)} 
+                <Input
+                  value={calculatePerHeadHour().toFixed(2)}
                   readOnly
                   className="bg-gray-50"
                   type="number"
@@ -1010,8 +1054,8 @@ const ProductionIncentiveEntry = () => {
             )}
             <div className="space-y-2">
               <Label>Default Norms</Label>
-              <Input 
-                value={norms} 
+              <Input
+                value={norms}
                 type="number"
                 disabled={productionType.toLowerCase() === 'group'}
                 className={productionType.toLowerCase() === 'group' ? 'bg-gray-50' : ''}
@@ -1034,8 +1078,8 @@ const ProductionIncentiveEntry = () => {
             {productionType.toLowerCase() !== 'individual' && (
               <div className="space-y-2">
                 <Label>Man power</Label>
-                <Input 
-                  value={manpower} 
+                <Input
+                  value={manpower}
                   onChange={(e) => handleManpowerChange(e.target.value)}
                   type="number"
                   min="1"
@@ -1044,8 +1088,8 @@ const ProductionIncentiveEntry = () => {
             )}
             <div className="space-y-2">
               <Label>Production Hrs</Label>
-              <Input 
-                value={workedHrs} 
+              <Input
+                value={workedHrs}
                 onChange={(e) => handleWorkedHrsChange(e.target.value)}
                 type="number"
                 min="0"
@@ -1055,8 +1099,8 @@ const ProductionIncentiveEntry = () => {
             {productionType.toLowerCase() === 'group' && (
               <div className="space-y-2">
                 <Label>Net Production</Label>
-                <Input 
-                  value={producedQty} 
+                <Input
+                  value={producedQty}
                   onChange={(e) => setProducedQty(e.target.value)}
                   type="number"
                   min="0"
@@ -1083,7 +1127,7 @@ const ProductionIncentiveEntry = () => {
                 </div>
               )}
             </div>
-            
+
             {/* Employee Search Results */}
             {employees.length > 0 && (
               <div className="mt-2 border rounded-md bg-white shadow-sm max-h-48 overflow-y-auto">
@@ -1124,114 +1168,214 @@ const ProductionIncentiveEntry = () => {
                     {productionType.toLowerCase() !== 'group' && <TableHead>Produced Qty.</TableHead>}
                     <TableHead>Worked Hrs</TableHead>
                     <TableHead>Incentive (₹)</TableHead>
-                    <TableHead className="w-20">Remove</TableHead>
+                    <TableHead className="w-32">Actions</TableHead>
+
                   </TableRow>
                 </TableHeader>
-                 <TableBody>
+                <TableBody>
                   {selectedCustomers.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={productionType.toLowerCase() === 'group' ? 7 : 8} className="text-center text-gray-500 py-8">
-                          No customers selected
-                        </TableCell>
-                      </TableRow>
-                   ) : (
-                      currentCustomers.map((customer, index) => (
+                    <TableRow>
+                      <TableCell colSpan={productionType.toLowerCase() === 'group' ? 7 : 8} className="text-center text-gray-500 py-8">
+                        No customers selected
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    currentCustomers.map((customer, index) => {
+                      const isEditing = editingEmpCode === customer.empCode;
+
+                      return (
                         <TableRow key={customer.empCode}>
                           <TableCell>{startIndex + index + 1}</TableCell>
-                         <TableCell>{customer.customerName}</TableCell>
-                         <TableCell>{customer.empCode}</TableCell>
+
+                          <TableCell>{customer.customerName}</TableCell>
+
+                          <TableCell>{customer.empCode}</TableCell>
+
                           <TableCell>
                             <div className="text-sm font-medium">
                               {Number(customer.individualTarget).toFixed(2)}
                             </div>
                           </TableCell>
-                         {productionType.toLowerCase() !== 'group' && (
-                           <TableCell>
-                             <Input
-                               type="number"
-                               value={customer.producedQty}
-                               onChange={(e) => {
-                                 const newProducedQty = parseFloat(e.target.value) || 0;
-                                 updateCustomerField(customer.empCode, 'producedQty', newProducedQty);
-                               }}
-                               className="w-24"
-                               step="0.01"
-                             />
-                           </TableCell>
-                         )}
-                          <TableCell>
-                            <Input
-                              type="number"
-                              value={customer.workedHrs}
-                              onChange={(e) => {
-                                const newWorkedHrs = parseFloat(e.target.value) || 0;
-                                updateCustomerField(customer.empCode, 'workedHrs', newWorkedHrs);
-                              }}
-                              className="w-24"
-                              step="0.01"
-                            />
-                          </TableCell>
-                         <TableCell>
-                           <div className="text-sm font-medium text-green-600">
-                             ₹{customer.incentive.toFixed(2)}
-                           </div>
-                         </TableCell>
-                        <TableCell>
-                          <Button 
-                            size="sm" 
-                            variant="destructive"
-                            onClick={() => removeCustomerFromTable(customer.empCode)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                 </TableBody>
-               </Table>
-             </div>
-             
-             {/* Pagination Controls */}
-             {selectedCustomers.length > itemsPerPage && (
-               <div className="flex justify-center mt-4">
-                 <Pagination>
-                   <PaginationContent>
-                     <PaginationItem>
-                       <PaginationPrevious
-                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                         className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                       />
-                     </PaginationItem>
-                     
-                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                       <PaginationItem key={page}>
-                         <PaginationLink
-                           onClick={() => setCurrentPage(page)}
-                           isActive={currentPage === page}
-                           className="cursor-pointer"
-                         >
-                           {page}
-                         </PaginationLink>
-                       </PaginationItem>
-                     ))}
-                     
-                     <PaginationItem>
-                       <PaginationNext
-                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                         className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                       />
-                     </PaginationItem>
-                   </PaginationContent>
-                 </Pagination>
-               </div>
-             )}
-           </div>
 
-           {/* Submit Button */}
+                          {/* Produced Qty */}
+                          {productionType.toLowerCase() !== 'group' && (
+                            <TableCell>
+                              {isEditing ? (
+                                <Input
+                                  type="number"
+                                  value={customer.producedQty}
+                                  onChange={(e) => {
+                                    const newProducedQty =
+                                      parseFloat(e.target.value) || 0;
+
+                                    updateCustomerField(
+                                      customer.empCode,
+                                      'producedQty',
+                                      newProducedQty
+                                    );
+                                  }}
+                                  className="w-24"
+                                  step="0.01"
+                                />
+                              ) : (
+                                <span>{Number(customer.producedQty).toFixed(2)}</span>
+                              )}
+                            </TableCell>
+                          )}
+
+                          {/* Worked Hours */}
+                          <TableCell>
+                            {isEditing ? (
+                              <Input
+                                type="number"
+                                value={customer.workedHrs}
+                                onChange={(e) => {
+                                  const newWorkedHrs =
+                                    parseFloat(e.target.value) || 0;
+
+                                  updateCustomerField(
+                                    customer.empCode,
+                                    'workedHrs',
+                                    newWorkedHrs
+                                  );
+                                }}
+                                className="w-24"
+                                step="0.01"
+                              />
+                            ) : (
+                              <span>{Number(customer.workedHrs).toFixed(2)}</span>
+                            )}
+                          </TableCell>
+
+                          {/* Incentive */}
+                          <TableCell>
+                            {isEditing ? (
+                              <Input
+                                type="number"
+                                value={customer.incentive}
+                                onChange={(e) => {
+                                  const newIncentive =
+                                    parseFloat(e.target.value) || 0;
+
+                                  updateCustomerIncentive(
+                                    customer.empCode,
+                                    newIncentive
+                                  );
+                                }}
+                                className="w-28"
+                                step="0.01"
+                              />
+                            ) : (
+                              <div className="text-sm font-medium text-green-600">
+                                ₹{customer.incentive.toFixed(2)}
+                              </div>
+                            )}
+                          </TableCell>
+
+                          {/* Actions */}
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+
+                              {isEditing ? (
+                                <>
+                                  {/* Save */}
+                                  <Button
+                                    size="sm"
+                                    variant="default"
+                                    className="bg-green-600 hover:bg-green-700"
+                                    onClick={() =>
+                                      handleSaveCustomer(customer.empCode)
+                                    }
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </Button>
+
+                                  {/* Cancel */}
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={handleCancelEdit}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              ) : (
+                                <>
+                                  {/* Edit */}
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() =>
+                                      handleEditCustomer(customer.empCode)
+                                    }
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+
+                                  {/* Delete */}
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() =>
+                                      removeCustomerFromTable(customer.empCode)
+                                    }
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              )}
+
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Pagination Controls */}
+            {selectedCustomers.length > itemsPerPage && (
+              <div className="flex justify-center mt-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </div>
+
+          {/* Submit Button */}
           <div className="mt-6 flex justify-end">
-            <Button 
-              onClick={handleSubmit} 
+            <Button
+              onClick={handleSubmit}
               disabled={isLoading}
               className="px-8"
             >
@@ -1245,7 +1389,7 @@ const ProductionIncentiveEntry = () => {
               Loading dropdown data...
             </div>
           )}
-          
+
           <div className="text-sm text-gray-500 mt-4">
             <p>Shifts loaded: {shifts.length}</p>
             <p>Buildings loaded: {buildings.length}</p>
